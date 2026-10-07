@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "restaurantName": "Balcón del Zócalo",
+  "news": [
+    {
+      "id": "pilot-experience",
+      "title": "Una nueva forma de explorar los sabores",
+      "date": null,
+      "excerpt": "Descubre los platos de muestra y guarda tus favoritos en un solo lugar.",
+      "body": "Este piloto reúne noticias, platos y un espacio para el libro del restaurante. Empieza por el recetario, abre un plato para conocer sus ingredientes y toca el corazón para tenerlo siempre a mano. El contenido gastronómico de esta muestra proviene de los archivos compartidos y está pendiente de contrastarse con el restaurante.",
+      "iconName": "sparkles",
+      "kind": "Guía del piloto",
+      "verification": "demo",
+      "source": "Texto editorial de demostración; no es un anuncio del restaurante.",
+      "sourceURL": null
+    },
+    {
+      "id": "pilot-book",
+      "title": "El libro también tendrá su lugar",
+      "date": null,
+      "excerpt": "Un espacio tranquilo para leer, página a página, cuando compartas el libro.",
+      "body": "La sección Nuestro libro está preparada para recibir un PDF. Puedes probar el lector con un documento que tengas permiso de utilizar. El archivo se conserva en este dispositivo y puedes retirarlo cuando quieras. El libro, su índice y sus capítulos se añadirán cuando el propietario proporcione la información.",
+      "iconName": "book.closed",
+      "kind": "Guía del piloto",
+      "verification": "demo",
+      "source": "Texto editorial de demostración; libro pendiente de entrega por el propietario.",
+      "sourceURL": null
+    }
+  ],
+  "recipes": [
+    {
+      "id": "fideo-seco",
+      "name": "Fideo seco con chicharrón de filete",
+      "category": "Platos",
+      "complexity": null,
+      "ingredients": ["Fideo seco", "Filete de res", "Queso Ocosingo", "Crema de Etla", "Chile pasilla"],
+      "description": "Fideo seco con ensalada de tomate verde y aguacate, según la muestra compartida.",
+      "steps": [],
+      "servings": null,
+      "priceMXN": null,
+      "verification": "pending",
+      "source": "Sources/RecipeBookView.swift del archivo compartido por el propietario. Pendiente de verificación con el menú oficial.",
+      "sourceURL": null,
+      "art": "fideo"
+    },
+    {
+      "id": "sope-totoaba",
+      "name": "Sope de tinga de totoaba",
+      "category": "Entradas",
+      "complexity": null,
+      "ingredients": ["Maíz azul", "Totoaba", "Cremoso de frijol", "Katsuobushi"],
+      "description": "Una entrada de maíz azul con tinga de totoaba, según la muestra compartida.",
+      "steps": [],
+      "servings": null,
+      "priceMXN": null,
+      "verification": "pending",
+      "source": "Sources/RecipeBookView.swift del archivo compartido por el propietario. Pendiente de verificar ingredientes y procedencia con el restaurante.",
+      "sourceURL": null,
+      "art": "sope"
+    }
+  ],
+  "book": {
+    "title": "Nuestro libro",
+    "status": "awaiting-owner",
+    "chapters": []
+  }
+}

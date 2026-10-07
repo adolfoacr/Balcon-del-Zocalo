@@ -1,0 +1,25 @@
+{
+  "name": "balcon-del-zocalo-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build-preview.mjs",
+    "dev": "node scripts/serve.mjs",
+    "check": "node --check web/service.js && node --check web/admin.js && node --check web/work.js && node --check web/site-model.js && node --check web/app.js && node --check web/carousel.js && node --check web/markup.js && node --check web/pdf-runtime.js && node --check scripts/build-preview.mjs && node --check scripts/serve.mjs && node scripts/validate-content.mjs",
+    "test": "playwright test",
+    "check:responsive": "node scripts/check-responsive.mjs",
+    "test:security": "node --test cms-tests/security.test.js"
+  },
+  "dependencies": {
+    "pdfjs-dist": "6.4.299"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@playwright/test": "1.63.0",
+    "esbuild": "0.28.2"
+  }
+}

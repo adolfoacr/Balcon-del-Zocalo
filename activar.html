@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Activar tu sitio · Balcón del Zócalo</title><style>body{margin:0;background:#1c1c1b;color:#f6f3ed;font:17px/1.65 system-ui,sans-serif}main{max-width:850px;margin:auto;padding:24px}h1{font-size:clamp(28px,5vw,42px);line-height:1.2}h2{font-size:24px}a{color:#c7ac72}button,.button{display:inline-flex;align-items:center;min-height:48px;border:1px solid #c7ac72;border-radius:6px;padding:8px 20px;background:#c7ac72;color:#171715;font:inherit;box-sizing:border-box;text-decoration:none;cursor:pointer;margin:6px 6px 6px 0}textarea,input{box-sizing:border-box;width:100%;padding:12px;background:#252523;color:#f6f3ed;border:1px solid #777;font:15px/1.5 monospace;border-radius:6px}textarea{height:240px}section{border-top:1px solid #555;padding:24px 0}code{overflow-wrap:anywhere}p{overflow-wrap:anywhere}.muted{color:#b6b4ac}</style><main><p class="muted">Configuración del propietario · Se hace una vez</p><h1>Activa las cuentas, el editor y las propuestas.</h1><p>La web ya está preparada. Estos pasos crean las tablas y permisos en tu proyecto de Supabase. Puedes hacerlos desde Safari en tu iPad; no necesitas descargar archivos.</p><section><h2>1. Crea las tablas</h2><p>Abre tu proyecto, entra en <strong>SQL Editor → New query</strong>, copia este código completo, pégalo y pulsa <strong>Run</strong>. El código mantiene privados los trabajos y sus adjuntos y reserva la selección a Checo.</p><a class="button" href="https://supabase.com/dashboard/project/pqmxurrqpvubxccnsywu/sql/new" target="_blank" rel="noopener noreferrer">Abrir SQL Editor</a><button data-copy="setup-code">Copiar código completo</button><label for="setup-code">Código SQL de configuración</label><textarea id="setup-code" readonly spellcheck="false">-- Execute once in the Supabase SQL Editor. No secret keys are required in the web app.
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Activar tu sitio · Balcón del Zócalo</title><style>body{margin:0;background:#1c1c1b;color:#f6f3ed;font:17px/1.65 system-ui,sans-serif}main{max-width:850px;margin:auto;padding:24px}h1{font-size:clamp(28px,5vw,42px);line-height:1.2}h2{font-size:24px}a{color:#c7ac72}button,.button{display:inline-flex;align-items:center;min-height:48px;border:1px solid #c7ac72;border-radius:6px;padding:8px 20px;background:#c7ac72;color:#171715;font:inherit;box-sizing:border-box;text-decoration:none;cursor:pointer;margin:6px 6px 6px 0}textarea,input{box-sizing:border-box;width:100%;padding:12px;background:#252523;color:#f6f3ed;border:1px solid #777;font:15px/1.5 monospace;border-radius:6px}textarea{height:240px}section{border-top:1px solid #555;padding:24px 0}code{overflow-wrap:anywhere}p{overflow-wrap:anywhere}.muted{color:#b6b4ac}</style><main><p class="muted">Configuración del propietario · Se hace una vez</p><h1>Activa las cuentas, el editor y las propuestas.</h1><p>La web ya está preparada. Estos pasos crean las tablas y permisos en tu proyecto de Supabase. Puedes hacerlos desde Safari en tu iPad; no necesitas descargar archivos.</p><section><h2>1. Crea las tablas</h2><p>Abre tu proyecto, entra en <strong>SQL Editor → New query</strong>, copia este código completo, pégalo y pulsa <strong>Run</strong>. El código permite elegir trabajos públicos o privados y reserva la selección a Checo. Si ya instalaste las tablas, puedes ejecutar solo upgrade-public-work.sql desde GitHub; las propuestas existentes conservan su privacidad.</p><a class="button" href="https://supabase.com/dashboard/project/pqmxurrqpvubxccnsywu/sql/new" target="_blank" rel="noopener noreferrer">Abrir SQL Editor</a><button data-copy="setup-code">Copiar código completo</button><label for="setup-code">Código SQL de configuración</label><textarea id="setup-code" readonly spellcheck="false">-- Execute once in the Supabase SQL Editor. No secret keys are required in the web app.
 create table if not exists public.cms_admins (
   user_id uuid primary key references auth.users(id) on delete cascade,
   owner boolean not null default false,
@@ -254,4 +254,57 @@ using(bucket_id&lt;&gt;'work-files' or split_part(name,'/',1)=auth.uid()::text o
 drop policy if exists work_files_upload_guard on storage.objects;
 create policy work_files_upload_guard on storage.objects as restrictive for insert to authenticated
 with check(bucket_id&lt;&gt;'work-files' or split_part(name,'/',1)=auth.uid()::text);
+
+-- Run in SQL Editor after setup.sql. Existing proposals remain private.
+alter table public.work_submissions add column if not exists visibility text not null default 'private' check(visibility in ('private','public'));
+alter table public.work_submissions add column if not exists author_name text not null default '';
+create index if not exists public_work_date on public.work_submissions(created_at desc) where visibility='public';
+-- This wrapper keeps the original private submission validation and rate limit.
+create or replace function public.submit_work_with_visibility(work_title text,work_kind text,work_summary text,
+ work_body text,work_reference text default '',work_attachments text[] default '{}',work_visibility text default 'private')
+returns uuid language plpgsql security definer set search_path='' as $$
+declare result_id uuid; display_name text;
+begin
+ if work_visibility is null or work_visibility not in ('private','public') then raise exception 'invalid_visibility' using errcode='22023'; end if;
+ result_id := public.submit_work(work_title,work_kind,work_summary,work_body,work_reference,work_attachments);
+ select left(coalesce(raw_user_meta_data-&gt;&gt;'full_name','Participante'),100) into display_name from auth.users where id=auth.uid();
+ update public.work_submissions set visibility=work_visibility,author_name=display_name where id=result_id;
+ return result_id;
+end $$;
+revoke all on function public.submit_work_with_visibility(text,text,text,text,text,text[],text) from public;
+grant execute on function public.submit_work_with_visibility(text,text,text,text,text,text[],text) to authenticated;
+create or replace function public.public_works(take integer default 20,skip integer default 0)
+returns table(id uuid,title text,kind text,summary text,body text,reference_url text,attachment_paths text[],author_name text,created_at timestamptz)
+language sql stable security definer set search_path='' as $$
+ select w.id,w.title,w.kind,w.summary,w.body,w.reference_url,w.attachment_paths,w.author_name,w.created_at
+ from public.work_submissions w where w.visibility='public' order by w.created_at desc,w.id
+ limit greatest(1,least(coalesce(take,20),50)) offset greatest(0,least(coalesce(skip,0),50000));
+$$;
+revoke all on function public.public_works(integer,integer) from public;
+grant execute on function public.public_works(integer,integer) to anon,authenticated;
+create or replace function public.set_work_visibility(work_id uuid,work_visibility text)
+returns void language plpgsql security definer set search_path='' as $$
+begin
+ if auth.uid() is null then raise exception 'confirmed_account_required' using errcode='42501';end if;
+ if work_visibility is null or work_visibility not in ('private','public') then raise exception 'invalid_visibility' using errcode='22023';end if;
+ update public.work_submissions set visibility=work_visibility where id=work_id and author_id=auth.uid();
+ if not found then raise exception 'submission_not_found' using errcode='42501';end if;
+end $$;
+revoke all on function public.set_work_visibility(uuid,text) from public;
+grant execute on function public.set_work_visibility(uuid,text) to authenticated;
+create or replace function public.is_public_work_file(file_path text) returns boolean
+language sql stable security definer set search_path='' as $$
+ select exists(select 1 from public.work_submissions where visibility='public' and file_path=any(attachment_paths));
+$$;
+revoke all on function public.is_public_work_file(text) from public;
+grant execute on function public.is_public_work_file(text) to anon,authenticated;
+drop policy if exists work_files_public_read on storage.objects;
+create policy work_files_public_read on storage.objects for select to anon,authenticated
+using(bucket_id='work-files' and public.is_public_work_file(name));
+drop policy if exists work_files_anon_guard on storage.objects;
+create policy work_files_anon_guard on storage.objects as restrictive for select to anon
+using(bucket_id&lt;&gt;'work-files' or public.is_public_work_file(name));
+drop policy if exists work_files_auth_guard on storage.objects;
+create policy work_files_auth_guard on storage.objects as restrictive for select to authenticated
+using(bucket_id&lt;&gt;'work-files' or split_part(name,'/',1)=auth.uid()::text or public.is_site_admin() or public.is_public_work_file(name));
 </textarea></section><section><h2>2. Configura los correos</h2><p>En <strong>Authentication → URL Configuration</strong>, fija Site URL en:</p><code>https://adolfoacr.github.io/Balcon-del-Zocalo/</code><p>Agrega a Redirect URLs:</p><code>https://adolfoacr.github.io/Balcon-del-Zocalo/**</code><p>En <strong>Authentication → Providers → Email</strong>, habilita Email y conserva la confirmación de correo. Para recibir correos de confirmación y recuperación de forma fiable, configura tu SMTP en Authentication; el correo de prueba de Supabase puede limitar destinatarios o envíos.</p></section><section><h2>3. Regístrate y asigna tu cuenta como propietario</h2><p>Abre la web, toca <strong>Registro</strong> y confirma tu correo. Después vuelve al SQL Editor y ejecuta la instrucción que generamos abajo. Usa el mismo correo de tu cuenta registrada.</p><a class="button" href="./#registro" target="_blank" rel="noopener noreferrer">Registrarme en la web</a><label for="owner-email">Tu correo de propietario</label><input id="owner-email" type="email" autocomplete="email" placeholder="tu-correo@ejemplo.com"><button id="owner-generate">Preparar instrucción</button><textarea id="owner-code" readonly aria-label="Código para asignar propietario" spellcheck="false"></textarea><button data-copy="owner-code">Copiar instrucción de propietario</button><p class="muted">Solo se asigna el primer propietario desde SQL Editor. Registrarse no da acceso al editor.</p></section><section><h2>4. Asigna la cuenta de Checo</h2><p>Inicia sesión en la web con tu cuenta de propietario. En <strong>Administrar → Usuarios y cuenta → Cuenta del chef Checo</strong>, indica el correo registrado y confirmado que usará Checo. Si tú también operas su cuenta, puedes asignar tu propio correo.</p><p>En <strong>Trabajos y colaboración</strong>, el equipo puede consultar las propuestas. Checo puede marcar una propuesta en revisión, seleccionarla o responder al participante. El participante consulta la respuesta en <strong>Comparte tu trabajo → Mis propuestas</strong>.</p><a class="button" href="./#cuenta">Abrir la web</a></section><p id="copy-status" role="status" aria-live="polite"></p><p class="muted">La web usa la clave pública que compartiste. No se necesitan claves secret ni service_role.</p></main><script>document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{const el=document.getElementById(button.dataset.copy),status=document.getElementById('copy-status');if(!el.value){status.textContent='Prepara primero la instrucción con tu correo.';return;}try{await navigator.clipboard.writeText(el.value);status.textContent='Copiado. Pégalo en el SQL Editor de Supabase.';}catch{el.focus();el.select();el.setSelectionRange(0,el.value.length);status.textContent='El texto está seleccionado. Mantén pulsado y elige Copiar.';}}));document.getElementById('owner-generate').addEventListener('click',()=>{const el=document.getElementById('owner-email');if(!el.value||!el.checkValidity()){el.reportValidity();return;}document.getElementById('owner-code').value="select public.bootstrap_site_owner('"+el.value.trim().replaceAll("'","''")+"');";});</script></html>

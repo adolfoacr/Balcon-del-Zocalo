@@ -1,0 +1,53 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Actualizar participaciones · Balcón del Zócalo</title><style>body{background:#1c1c1b;color:#f6f3ed;font:17px/1.65 system-ui;margin:0}main{max-width:800px;margin:auto;padding:26px}h1{font-size:clamp(28px,5vw,42px);line-height:1.2}section{border-top:1px solid #444;margin-top:30px;padding-top:24px}a{color:#c7ac72}button,.button{display:inline-flex;align-items:center;min-height:48px;border:1px solid #c7ac72;border-radius:6px;padding:10px 20px;background:#c7ac72;color:#171715;text-decoration:none;font:inherit;cursor:pointer;margin:8px 8px 8px 0}textarea{box-sizing:border-box;width:100%;height:320px;background:#252523;color:#f6f3ed;border:1px solid #777;font:13px/1.5 monospace;padding:14px}code{overflow-wrap:anywhere}p{overflow-wrap:anywhere}</style><main><p>Configuración del propietario · Actualización</p><h1>Activa las participaciones públicas.</h1><p>La app incorpora trabajos públicos o privados, galería de Investigación y desarrollo, edición visual, colores, ubicación y un lector integrado. Para que las participaciones públicas funcionen entre dispositivos, ejecuta esta actualización en tu proyecto.</p><section><h2>1. Copia y ejecuta la actualización</h2><p>En <strong>SQL Editor → New query</strong>, pega el código y pulsa <strong>Run</strong>. Tus participaciones existentes seguirán siendo privadas. La opción pública muestra el nombre, contenido y adjuntos del autor; la respuesta de Checo permanece privada.</p><a class="button" href="https://supabase.com/dashboard/project/pqmxurrqpvubxccnsywu/sql/new" target="_blank" rel="noopener noreferrer">Abrir SQL Editor</a><button id="copy">Copiar actualización completa</button><label for="sql">Código SQL de actualización</label><textarea id="sql" readonly spellcheck="false">-- Run in SQL Editor after setup.sql. Existing proposals remain private.
+alter table public.work_submissions add column if not exists visibility text not null default 'private' check(visibility in ('private','public'));
+alter table public.work_submissions add column if not exists author_name text not null default '';
+create index if not exists public_work_date on public.work_submissions(created_at desc) where visibility='public';
+-- This wrapper keeps the original private submission validation and rate limit.
+create or replace function public.submit_work_with_visibility(work_title text,work_kind text,work_summary text,
+ work_body text,work_reference text default '',work_attachments text[] default '{}',work_visibility text default 'private')
+returns uuid language plpgsql security definer set search_path='' as $$
+declare result_id uuid; display_name text;
+begin
+ if work_visibility is null or work_visibility not in ('private','public') then raise exception 'invalid_visibility' using errcode='22023'; end if;
+ result_id := public.submit_work(work_title,work_kind,work_summary,work_body,work_reference,work_attachments);
+ select left(coalesce(raw_user_meta_data->>'full_name','Participante'),100) into display_name from auth.users where id=auth.uid();
+ update public.work_submissions set visibility=work_visibility,author_name=display_name where id=result_id;
+ return result_id;
+end $$;
+revoke all on function public.submit_work_with_visibility(text,text,text,text,text,text[],text) from public;
+grant execute on function public.submit_work_with_visibility(text,text,text,text,text,text[],text) to authenticated;
+create or replace function public.public_works(take integer default 20,skip integer default 0)
+returns table(id uuid,title text,kind text,summary text,body text,reference_url text,attachment_paths text[],author_name text,created_at timestamptz)
+language sql stable security definer set search_path='' as $$
+ select w.id,w.title,w.kind,w.summary,w.body,w.reference_url,w.attachment_paths,w.author_name,w.created_at
+ from public.work_submissions w where w.visibility='public' order by w.created_at desc,w.id
+ limit greatest(1,least(coalesce(take,20),50)) offset greatest(0,least(coalesce(skip,0),50000));
+$$;
+revoke all on function public.public_works(integer,integer) from public;
+grant execute on function public.public_works(integer,integer) to anon,authenticated;
+create or replace function public.set_work_visibility(work_id uuid,work_visibility text)
+returns void language plpgsql security definer set search_path='' as $$
+begin
+ if auth.uid() is null then raise exception 'confirmed_account_required' using errcode='42501';end if;
+ if work_visibility is null or work_visibility not in ('private','public') then raise exception 'invalid_visibility' using errcode='22023';end if;
+ update public.work_submissions set visibility=work_visibility where id=work_id and author_id=auth.uid();
+ if not found then raise exception 'submission_not_found' using errcode='42501';end if;
+end $$;
+revoke all on function public.set_work_visibility(uuid,text) from public;
+grant execute on function public.set_work_visibility(uuid,text) to authenticated;
+create or replace function public.is_public_work_file(file_path text) returns boolean
+language sql stable security definer set search_path='' as $$
+ select exists(select 1 from public.work_submissions where visibility='public' and file_path=any(attachment_paths));
+$$;
+revoke all on function public.is_public_work_file(text) from public;
+grant execute on function public.is_public_work_file(text) to anon,authenticated;
+drop policy if exists work_files_public_read on storage.objects;
+create policy work_files_public_read on storage.objects for select to anon,authenticated
+using(bucket_id='work-files' and public.is_public_work_file(name));
+drop policy if exists work_files_anon_guard on storage.objects;
+create policy work_files_anon_guard on storage.objects as restrictive for select to anon
+using(bucket_id&lt;>'work-files' or public.is_public_work_file(name));
+drop policy if exists work_files_auth_guard on storage.objects;
+create policy work_files_auth_guard on storage.objects as restrictive for select to authenticated
+using(bucket_id&lt;>'work-files' or split_part(name,'/',1)=auth.uid()::text or public.is_site_admin() or public.is_public_work_file(name));
+</textarea><p id="status" role="status" aria-live="polite"></p><p>Al cambiar una participación a privada, desaparece de la galería. Los enlaces firmados a sus adjuntos que ya se emitieron pueden seguir funcionando hasta cinco minutos.</p></section><section><h2>2. Revisa los correos de registro</h2><p>El proyecto permite registros por correo y exige confirmación. Si ves un mensaje sobre destinatarios no autorizados, límite de envío o error al enviar la confirmación, abre <strong>Authentication → Email / SMTP Settings</strong> y configura un proveedor de correo para tu proyecto. El envío de prueba de Supabase puede restringir destinatarios o cantidad de envíos.</p><p>Introduce host, puerto, usuario, contraseña y remitente del proveedor directamente en Supabase. No los compartas en este chat. Conserva la confirmación de correo y vuelve a probar después de que el proveedor esté configurado.</p><a class="button" href="https://supabase.com/dashboard/project/pqmxurrqpvubxccnsywu" target="_blank" rel="noopener noreferrer">Abrir mi proyecto</a><p>En Authentication → URL Configuration, usa Site URL <code>https://adolfoacr.github.io/Balcon-del-Zocalo/</code> y permite Redirect URLs <code>https://adolfoacr.github.io/Balcon-del-Zocalo/**</code>.</p></section><section><h2>3. Usa el editor</h2><p>Inicia sesión con tu cuenta de administrador. En la vista previa toca <strong>Editar todos los elementos</strong> para mostrar lápices y cruces. El lápiz cambia texto, imagen y colores. La cruz permite arrastrar o elegir un destino. <strong>Devolver a su origen</strong> restaura la ubicación del elemento; <strong>Restaurar acomodo original</strong> restaura todos los movimientos. Solo <strong>Publicar</strong> muestra tus cambios al resto de visitantes.</p><p>Los colores generales se encuentran en <strong>Colores y temas</strong>. La dirección y el mapa están en <strong>Ubicación y mapa</strong>. Portada y carrusel permite cambiar el título principal y los espacios de I+D y del chef Checo. En Recetario puedes crear menús, asignar recetas y editar ingredientes, preparación, investigación, técnica, aprovechamiento y resultados.</p><a class="button" href="./#cuenta">Abrir la app</a><a href="./activar.html">Configuración inicial y asignación del primer administrador</a></section></main><script>document.getElementById('copy').addEventListener('click',async()=>{const input=document.getElementById('sql'),status=document.getElementById('status');try{await navigator.clipboard.writeText(input.value);status.textContent='Copiado. Pégalo en SQL Editor y pulsa Run.';}catch{input.focus();input.select();input.setSelectionRange(0,input.value.length);status.textContent='Mantén pulsado sobre el texto seleccionado y elige Copiar.';}});</script></html>

@@ -3,16 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Balcón">
   <meta name="theme-color" content="#1c1c1b">
-  <meta name="description" content="Piloto de experiencia gastronómica: noticias, recetario y el libro de Balcón del Zócalo.">
-  <title>Balcón del Zócalo · Experiencia</title>
+  <meta name="description" content="Investigación y desarrollo, investigaciones del chef Checo, recetario y aprovechamientos de Balcón del Zócalo.">
+  <title>Balcón del Zócalo · I+D y Chef Checo</title>
   <link rel="stylesheet" href="/styles.css">
   <script type="module" src="/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Ir al contenido</a>
   <header class="masthead">
-    <span class="location-label">CIUDAD DE MÉXICO<br><span>Experiencia gastronómica</span></span>
+    <span class="location-label">CIUDAD DE MÉXICO<br><span>Investigación y desarrollo</span></span>
     <a class="brand" href="#noticias" aria-label="Balcón del Zócalo, inicio"><img src="/assets/brand.png" alt="Balcón del Zócalo" width="902" height="88"></a>
     <span class="edition"><span class="pilot-label">Piloto</span></span>
     <div id="brand-edit" hidden><button class="edit-pencil" data-edit-panel="appearance" aria-label="Editar identidad"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m3 14-1 4 4-1L17 6l-4-4zM11 4l4 4" stroke="currentColor" stroke-width="1.4"/></svg></button></div>
@@ -21,10 +25,12 @@
     <a href="#noticias" data-nav="noticias">Noticias</a>
     <a href="#recetario" data-nav="recetario">Recetario</a>
     <a href="#libro" data-nav="libro">Nuestro libro</a>
+    <a href="#comparte" data-nav="comparte">Comparte tu trabajo</a>
   </nav>
   <aside id="editor-tools" class="editor-tools" aria-label="Edición de administrador" hidden></aside>
   <main id="main" tabindex="-1"><p class="loading">Preparando tu experiencia…</p></main>
-  <footer class="footer"><span>Balcón del Zócalo</span><span>Una mesa. Muchas historias.</span><span class="footer-edition">Experiencia gastronómica · Piloto</span></footer>
+  <aside id="restaurant-location" aria-label="Ubicación del restaurante"></aside>
+  <footer class="footer"><span>Balcón del Zócalo</span><span>Investigar. Aprovechar. Crear.</span><span class="footer-edition">Investigación y desarrollo · Piloto</span></footer>
   <dialog id="detail-dialog" aria-labelledby="detail-title"><button class="close-button" aria-label="Cerrar detalle">✕</button><div id="detail-content"></div></dialog>
   <dialog id="remove-dialog" aria-labelledby="remove-title"><h2 id="remove-title">¿Retirar este libro?</h2><p>Se borrará la copia guardada en este navegador. Tu archivo original seguirá intacto.</p><div class="actions"><button id="cancel-remove" class="button secondary">Conservar libro</button><button id="confirm-remove" class="button">Retirar libro</button></div></dialog>
   <p id="toast" role="status" aria-live="polite" class="toast" hidden></p>

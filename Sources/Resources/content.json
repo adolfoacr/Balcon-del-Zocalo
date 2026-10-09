@@ -4,10 +4,10 @@
   "news": [
     {
       "id": "pilot-experience",
-      "title": "Una nueva forma de explorar los sabores",
+      "title": "Del ingrediente a la investigación",
       "date": null,
-      "excerpt": "Descubre los platos de muestra y guarda tus favoritos en un solo lugar.",
-      "body": "Este piloto reúne noticias, platos y un espacio para el libro del restaurante. Empieza por el recetario, abre un plato para conocer sus ingredientes y toca el corazón para tenerlo siempre a mano. El contenido gastronómico de esta muestra proviene de los archivos compartidos y está pendiente de contrastarse con el restaurante.",
+      "excerpt": "Explora un espacio para los procesos, las recetas y los aprovechamientos del chef Checo.",
+      "body": "Este piloto da el mismo espacio al área de investigación y desarrollo de Balcón del Zócalo y al trabajo del chef Checo. El recetario puede reunir ingredientes, técnicas, resultados y aprovechamientos; Comparte tu trabajo permite proponer investigaciones o desarrollos y elegir su visibilidad. Los proyectos reales del chef y las noticias oficiales se incorporarán con la información del equipo. Las fichas actuales son de muestra y están pendientes de confirmación.",
       "iconName": "sparkles",
       "kind": "Guía del piloto",
       "verification": "demo",
@@ -33,7 +33,13 @@
       "name": "Fideo seco con chicharrón de filete",
       "category": "Platos",
       "complexity": null,
-      "ingredients": ["Fideo seco", "Filete de res", "Queso Ocosingo", "Crema de Etla", "Chile pasilla"],
+      "ingredients": [
+        "Fideo seco",
+        "Filete de res",
+        "Queso Ocosingo",
+        "Crema de Etla",
+        "Chile pasilla"
+      ],
       "description": "Fideo seco con ensalada de tomate verde y aguacate, según la muestra compartida.",
       "steps": [],
       "servings": null,
@@ -48,7 +54,12 @@
       "name": "Sope de tinga de totoaba",
       "category": "Entradas",
       "complexity": null,
-      "ingredients": ["Maíz azul", "Totoaba", "Cremoso de frijol", "Katsuobushi"],
+      "ingredients": [
+        "Maíz azul",
+        "Totoaba",
+        "Cremoso de frijol",
+        "Katsuobushi"
+      ],
       "description": "Una entrada de maíz azul con tinga de totoaba, según la muestra compartida.",
       "steps": [],
       "servings": null,

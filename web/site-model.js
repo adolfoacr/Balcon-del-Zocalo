@@ -15,17 +15,19 @@ export function imageURL(value, fallback='') {
   if (typeof value==='string' && /^data:image\/(png|jpeg|webp|gif);base64,[a-zA-Z0-9+/=]+$/.test(value) && value.length < 4000000) return value;
   const url=safeHref(value,''); return url.startsWith('https:') ? url : fallback;
 }
-export function defaultWorkPage() {return {eyebrow:'Ideas que nos acercan',title:'Comparte tu trabajo',description:'Comparte tus investigaciones y desarrollos gastronómicos con el chef Checo.',invitation:'Checo revisará las propuestas y podrá seleccionar investigaciones para explorar una colaboración contigo. Enviar tu trabajo no garantiza una selección.'};}
+export function defaultWorkPage() {return {eyebrow:'Laboratorio abierto · I+D',title:'Comparte tu trabajo',description:'Investigar, desarrollar y compartir: nuevas posibilidades para la cocina del Balcón del Zócalo.',galleryEyebrow:'Laboratorio del Balcón',galleryTitle:'Investigación y desarrollo',galleryDescription:'Investigaciones, procesos y aprovechamientos compartidos por la comunidad. Un espacio para observar, experimentar y conectar ideas con el chef Checo.',invitation:'Comparte tu investigación o desarrollo con el área de I+D. Checo revisará las propuestas y podrá seleccionar investigaciones para explorar una colaboración contigo. Enviar tu trabajo no garantiza una selección.'};}
+export function defaultLabHome(){return {labTitle:'Cada ingrediente, una posibilidad.',labDescription:'Un espacio dedicado a la investigación, el desarrollo y los aprovechamientos del chef Checo en Balcón del Zócalo.',methodOneTitle:'Investigar',methodOneText:'Observar los ingredientes, hacer preguntas y documentar el proceso.',methodTwoTitle:'Aprovechar',methodTwoText:'Explorar nuevas posibilidades para cada ingrediente y cada parte.',methodThreeTitle:'Desarrollar',methodThreeText:'Convertir las pruebas y los hallazgos en conocimiento para nuestra cocina.',labEyebrow:'Área de investigación y desarrollo',labButtonLabel:'Explorar investigaciones',labButtonLink:'#comparte',chefEyebrow:'El trabajo del chef Checo',chefTitle:'Una idea. Muchas posibilidades.',chefDescription:'Un espacio propio para las investigaciones, los desarrollos y los aprovechamientos del chef Checo. Procesos y recetas que documentan su trabajo en la cocina.',chefImage:'@chef',chefButtonLabel:'Explorar su recetario',chefButtonLink:'#recetario'};}
+export function defaultLocation(){return {title:'Encuéntranos en el corazón de la ciudad',address:'Av. 5 de Mayo 61, Centro Histórico, Ciudad de México',query:'Balcón del Zócalo, Av. 5 de Mayo 61, Ciudad de México',buttonLabel:'Cómo llegar',image:''};}
 export function createSiteDocument(seed) {
-  if (seed?.cmsVersion===1) {const result=clone(seed); result.workPage ||= defaultWorkPage(); result.sectionBlocks ||= {}; for(const id of ['noticias','recetario','libro','comparte'])result.sectionBlocks[id] ||= []; if(!result.navigation.some(item=>item.id==='comparte'))result.navigation.push({id:'comparte',label:'Comparte tu trabajo',icon:'none',visible:true}); return result;}
+  if (seed?.cmsVersion===1) {const result=clone(seed); result.home={...defaultLabHome(),...result.home};result.recipeMenus ||= []; result.location ||= defaultLocation(); result.elementOverrides ||= {}; result.workPage={...defaultWorkPage(),...result.workPage}; result.sectionBlocks ||= {}; for(const id of ['noticias','recetario','libro','comparte'])result.sectionBlocks[id] ||= []; if(!result.navigation.some(item=>item.id==='comparte'))result.navigation.push({id:'comparte',label:'Comparte tu trabajo',icon:'none',visible:true}); return result;}
   return {
     cmsVersion:1, schemaVersion:1, restaurantName:seed.restaurantName || 'Balcón del Zócalo',
     appearance:{background:'#1c1c1b',text:'#f6f3ed',accent:'#c7ac72',muted:'#b6b4ac',font:'Questrial',width:1160,density:'comfortable'},
-    brand:{logo:'@brand',location:'CIUDAD DE MÉXICO',subtitle:'Experiencia gastronómica',footer:'Una mesa. Muchas historias.',badge:'Piloto'},
-    home:{eyebrow:'Ciudad de México · Experiencia gastronómica',title:'Una mesa.\nMuchas historias.',description:'Los sabores, las ideas y las páginas\nque hacen de cada visita una experiencia.',buttonLabel:'Explorar el recetario',buttonLink:'#recetario',buttonIcon:'link',welcomeTitle:'Una mirada a nuestra cocina.',welcomeText:'Descubre, guarda y vuelve a lo que te inspira.',newsTitle:'Para descubrir',newsEyebrow:'El diario del Balcón',newsSubtitle:'Noticias · Historias · Ideas',interval:3000,autoplay:true,alignment:'center',newsLayout:'carousel',sectionOrder:['welcome','news','shortcuts'],slides:[{id:'table',image:'@table',alt:'Mesa del chef en Balcón del Zócalo',focus:'center'},{id:'chef',image:'@chef',alt:'El chef junto a la vista de la ciudad',focus:'right'}]},
-    recipePage:{eyebrow:'Nuestra cocina · Recetario',title:'Sabores por descubrir.',description:'Conoce los ingredientes de cada plato y guarda lo que más te inspire.',layout:'grid'},
+    brand:{logo:'@brand',location:'CIUDAD DE MÉXICO',subtitle:'Investigación y desarrollo',footer:'Investigar. Aprovechar. Crear.',badge:'Piloto I+D'},
+    home:{...defaultLabHome(),eyebrow:'Balcón del Zócalo · Investigación y desarrollo',title:'El origen de\nlo que sigue.',description:'Ideas, procesos y aprovechamientos.\nLa cocina del chef Checo, en evolución.',buttonLabel:'Explorar el recetario',buttonLink:'#recetario',buttonIcon:'link',welcomeTitle:'Investigar. Aprovechar. Crear.',welcomeText:'El laboratorio de nuestra cocina.',newsTitle:'Bitácora del Balcón',newsEyebrow:'Procesos · Ideas · Hallazgos',newsSubtitle:'Noticias del área de I+D',interval:3000,autoplay:true,alignment:'left',newsLayout:'carousel',sectionOrder:['welcome','news','shortcuts'],slides:[{id:'chef',image:'@chef',alt:'El chef junto a la vista de la ciudad',focus:'right'},{id:'table',image:'@table',alt:'Mesa del chef en Balcón del Zócalo',focus:'center'}]},
+    recipeMenus:[],recipePage:{eyebrow:'Archivo de cocina · Chef Checo',title:'Recetario y aprovechamientos.',description:'Ingredientes, técnicas y procesos para seguir explorando. Descubre las fichas de cocina y guarda tus favoritas.',layout:'grid'},
     bookPage:{title:'Historias para saborear.',description:'El siguiente capítulo lo compartes tú.',heading:'Un lugar para cada página.',body:'Cuando compartas el libro, podrás recorrerlo aquí. Por ahora, prueba el lector con un PDF que tengas permiso de usar.',buttonLabel:'Cargar un PDF',cover:'',pdfURL:''},
-    workPage:defaultWorkPage(),sectionBlocks:{noticias:[],recetario:[],libro:[],comparte:[]},navigation:[{id:'noticias',label:'Noticias',icon:'none',visible:true},{id:'recetario',label:'Recetario',icon:'none',visible:true},{id:'libro',label:'Nuestro libro',icon:'none',visible:true},{id:'comparte',label:'Comparte tu trabajo',icon:'none',visible:true}],pages:[],shortcuts:[],
+    location:defaultLocation(),elementOverrides:{},workPage:defaultWorkPage(),sectionBlocks:{noticias:[],recetario:[],libro:[],comparte:[]},navigation:[{id:'noticias',label:'Noticias',icon:'none',visible:true},{id:'recetario',label:'Recetario',icon:'none',visible:true},{id:'libro',label:'Nuestro libro',icon:'none',visible:true},{id:'comparte',label:'Comparte tu trabajo',icon:'none',visible:true}],pages:[],shortcuts:[{id:'lab-recipes',label:'Recetario y aprovechamientos',link:'#recetario',icon:'utensils'},{id:'lab-community',label:'Investigación de la comunidad',link:'#comparte',icon:'sparkles'},{id:'lab-book',label:'El archivo del Balcón',link:'#libro',icon:'book'}],
     news:clone(seed.news).map((item,i)=>({...item,image:i?'@table':'@chef',icon:'news',buttonLabel:'Leer más'})),
     recipes:clone(seed.recipes).map(item=>({...item,image:'',icon:'utensils',buttonLabel:'Ver ingredientes'})),
     book:clone(seed.book)
@@ -33,7 +35,7 @@ export function createSiteDocument(seed) {
 }
 export function validateSiteDocument(site) {
   if (!site || site.cmsVersion!==1 || !site.home || !site.appearance || !site.brand || !site.recipePage || !site.bookPage) throw new Error('El archivo no tiene el formato del editor.');
-  for (const [key,max] of [['news',100],['recipes',100],['navigation',20],['pages',20],['shortcuts',30]]) {
+  for (const [key,max] of [['news',100],['recipes',100],['recipeMenus',30],['navigation',20],['pages',20],['shortcuts',30]]) {
     if (!Array.isArray(site[key]) || site[key].length>max) throw new Error(`Revisa la cantidad de elementos en ${key}.`);
     const ids=new Set();
     for (const item of site[key]) {
@@ -53,7 +55,9 @@ export function validateSiteDocument(site) {
   if (!Array.isArray(site.home.sectionOrder) || site.home.sectionOrder.length!==3 || new Set(site.home.sectionOrder).size!==3 || site.home.sectionOrder.some(x=>!['welcome','news','shortcuts'].includes(x))) throw new Error('Revisa el orden de las secciones.');
   for (const item of site.recipes) {
     if (!item.name?.trim() || !item.category?.trim() || !Array.isArray(item.ingredients) || !Array.isArray(item.steps)) throw new Error('Cada receta necesita nombre, categoría y listas de ingredientes y preparación.');
+    if(item.menuIds && (!Array.isArray(item.menuIds)||item.menuIds.some(id=>!site.recipeMenus.some(menu=>menu.id===id))))throw new Error('Selecciona menús existentes para cada receta.');
   }
+  for(const menu of site.recipeMenus)if(!menu.name?.trim())throw new Error('Cada menú del recetario necesita un nombre.');
   for (const item of site.news) if (!item.title?.trim()) throw new Error('Cada noticia necesita un título.');
   for (const list of Object.values(site.sectionBlocks || {})) if (!Array.isArray(list) || list.length>30) throw new Error('Cada sección admite hasta 30 elementos.');
   for (const page of site.pages) if (!page.title?.trim() || !Array.isArray(page.blocks) || page.blocks.length>30) throw new Error('Revisa el nombre y los bloques de cada menú.');
@@ -64,11 +68,20 @@ export function validateSiteDocument(site) {
     if (!['banner','carousel','image','text','title','button','shortcut'].includes(block.type || 'text')) throw new Error('Elige un tipo de elemento válido.');
     if (block.type==='carousel' && (!Array.isArray(block.slides) || block.slides.length<1 || block.slides.length>20 || block.slides.some(x=>!imageURL(x.image)))) throw new Error('Añade entre 1 y 20 imágenes al carrusel.');
   }
+  if(site.elementOverrides && (Array.isArray(site.elementOverrides)||typeof site.elementOverrides!=='object'||Object.keys(site.elementOverrides).length>500))throw new Error('Revisa los elementos del editor.');
+  for(const [key,item]of Object.entries(site.elementOverrides||{})){
+    if(!/^[a-z0-9:._-]{1,300}$/i.test(key)||!item||typeof item!=='object')throw new Error('El elemento no tiene un identificador válido.');
+    if(['color','backgroundColor','borderColor'].some(k=>item[k]&&!/^#[a-f0-9]{6}$/i.test(item[k])))throw new Error('Usa colores hexadecimales de seis dígitos.');
+    if(item.size && (!Number.isFinite(item.size)||item.size<10||item.size>100))throw new Error('El tamaño de texto debe estar entre 10 y 100 px.');
+    if(item.align && !['left','center','right'].includes(item.align))throw new Error('Elige una alineación válida.');
+    if(item.icon && !iconNames.includes(item.icon))throw new Error('Elige un icono disponible.');
+    if(item.placement && [item.placement.container,item.placement.before].some(k=>typeof k!=='string'||!/^[a-z0-9:._-]{1,300}$/i.test(k)))throw new Error('Revisa el destino del elemento.');
+  }
   const walk=(value,key='')=>{
     if (typeof value==='string') {
       if (value.length>20000 && !value.startsWith('data:image/')) throw new Error('Un texto excede el límite de 20.000 caracteres.');
-      if (['image','cover','logo'].includes(key) && value && !imageURL(value)) throw new Error('Las imágenes necesitan una dirección HTTPS válida.');
-      if (['link','buttonLink','pdfURL'].includes(key) && value && !safeHref(value,'')) throw new Error('Usa enlaces HTTPS, correo, teléfono o una sección de la app.');
+      if ((['image','cover','logo'].includes(key)||key.endsWith('Image')) && value && !imageURL(value)) throw new Error('Las imágenes necesitan una dirección HTTPS válida.');
+      if ((['link','buttonLink','pdfURL'].includes(key)||key.endsWith('ButtonLink')) && value && !safeHref(value,'')) throw new Error('Usa enlaces HTTPS, correo, teléfono o una sección de la app.');
       if (key==='pdfURL' && value && !value.startsWith('https:')) throw new Error('El libro publicado necesita una dirección HTTPS.');
     } else if (Array.isArray(value)) value.forEach(v=>walk(v,key));
     else if (value && typeof value==='object') Object.entries(value).forEach(([k,v])=>walk(v,k));

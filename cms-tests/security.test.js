@@ -25,13 +25,13 @@ test('PostgreSQL policies enforce visitor, administrator and owner permissions',
  const owner='00000000-0000-0000-0000-000000000001',visitor='00000000-0000-0000-0000-000000000002',third='00000000-0000-0000-0000-000000000003';
  try {
  await db.exec(`create role anon;create role authenticated;create schema auth;create schema storage;
- create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);
+ create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  grant usage on schema auth to anon,authenticated;
  create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
  create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);
  alter table storage.objects enable row level security;grant usage on schema storage to anon,authenticated;grant select,insert,update,delete on storage.objects to anon,authenticated;
- insert into auth.users values('${owner}','owner@example.test',now()),('${visitor}','visitor@example.test',now()),('${third}','third@example.test',now());`);
+ insert into auth.users(id,email,email_confirmed_at) values('${owner}','owner@example.test',now()),('${visitor}','visitor@example.test',now()),('${third}','third@example.test',now());`);
  await db.exec(await readFile(new URL('../supabase/setup.sql',import.meta.url),'utf8'));
  await db.query("select public.bootstrap_site_owner('owner@example.test')");
  const as=async(role,id,action)=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec(`set role ${role}`);try{return await action();}finally{await db.exec('reset role');}};
@@ -109,8 +109,36 @@ test('PostgreSQL policies enforce visitor, administrator and owner permissions',
   const result=(await db.query('select status,feedback from public.work_submissions')).rows[0];
   assert.equal(result.status,'selected');assert.match(result.feedback,/Checo/);
  });
+ await db.exec(await readFile(new URL('../supabase/upgrade-public-work.sql',import.meta.url),'utf8'));
+ await as('anon','',async()=>{assert.equal((await db.query('select * from public.public_works()')).rows.length,0);});
+ let visible;
+ await as('authenticated',visitor,async()=>{
+  visible=(await db.query("select public.submit_work_with_visibility($1,'development',$2,$3,'',array[$4],'public') id",['Maíz compartido','Un desarrollo gastronómico público para todos.','Resultados detallados del desarrollo gastronómico compartido con la comunidad.',visitor+'/file.pdf'])).rows[0].id;
+ });
+ await as('anon','',async()=>{
+  const rows=(await db.query('select * from public.public_works()')).rows;assert.equal(rows.length,1);assert.equal(rows[0].id,visible);assert.equal('author_id' in rows[0],false);assert.equal('feedback' in rows[0],false);
+  assert.equal((await db.query("select * from storage.objects where bucket_id='work-files'")).rows.length,1);
+  await assert.rejects(db.query('select * from public.work_submissions'),/permission denied/);
+ });
+ await as('authenticated',third,()=>assert.rejects(db.query("select public.set_work_visibility($1,'private')",[visible]),/submission_not_found/));
+ await as('authenticated',visitor,()=>db.query("select public.set_work_visibility($1,'private')",[visible]));
+ await as('anon','',async()=>{
+  assert.equal((await db.query('select * from public.public_works()')).rows.length,0);
+  assert.equal((await db.query("select * from storage.objects where bucket_id='work-files'")).rows.length,0);
+ });
  // Re-running setup must preserve proposals, roles and published content.
  await db.exec(await readFile(new URL('../supabase/setup.sql',import.meta.url),'utf8'));
  assert.equal((await db.query('select status from public.work_submissions')).rows[0].status,'selected');
  } finally {await db.close();}
+});
+
+test('registration keeps real authentication separate from administrator lookup failures',async()=>{
+ const {SiteService}=await import('../web/service.js');
+ const config={url:'https://example.supabase.co',publishableKey:'sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxx'};
+ const original=globalThis.fetch,originalLocation=globalThis.location;globalThis.location={origin:'https://example.test',pathname:'/'};const requests=[];
+ try{
+  globalThis.fetch=async(url,options)=>{requests.push({url,options});if(url.includes('/signup'))return new Response(JSON.stringify({access_token:'test-token',refresh_token:'test-refresh',expires_in:3600}),{status:200});if(url.endsWith('/user'))return new Response(JSON.stringify({id:'00000000-0000-0000-0000-000000000001',email:'person@example.test'}),{status:200});return new Response(JSON.stringify({code:'PGRST205'}),{status:404});};
+  const service=new SiteService(config);assert.equal(await service.register(' Participant ',' PERSON@example.test ','test-password-1234'),true);assert.equal(service.user.email,'person@example.test');assert.equal(service.isAdmin,false);assert.match(service.roleIssue,/permisos/);const payload=JSON.parse(requests[0].options.body);assert.equal(payload.email,'person@example.test');assert.equal(payload.data.full_name,'Participant');
+  for(const [status,code,msg,expected]of [[429,'over_email_send_rate_limit','',/límite de envío/],[422,'email_address_not_authorized','',/destinatario/],[500,'unexpected_failure','Error sending confirmation email',/servicio de envío/]]){globalThis.fetch=async()=>new Response(JSON.stringify({code,msg}),{status});await assert.rejects(new SiteService(config).register('Name','person@example.test','test-password-1234'),expected);}
+ }finally{globalThis.fetch=original;if(originalLocation===undefined)delete globalThis.location;else globalThis.location=originalLocation;}
 });

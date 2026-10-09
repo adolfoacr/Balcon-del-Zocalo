@@ -38,10 +38,10 @@ async function uploadPDF(page) {
 test('navigation, editorial detail, and responsive layout', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name:'Una mesa. Muchas historias.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name:'El origen de lo que sigue.' })).toBeVisible();
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 28, 27)');
   await expect(page.getByRole('link', { name:'Noticias', exact:true })).toHaveAttribute('aria-current','page');
-  await page.getByRole('button', { name:/Una nueva forma/ }).click();
+  await page.getByRole('button', { name:/Del ingrediente a la investigación/ }).click();
   await expect(page.getByRole('dialog')).toContainText('Texto editorial de demostración');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();
@@ -191,3 +191,5 @@ test('slow library startup does not replace the file input while selecting a PDF
   await uploadPDF(page);
   await expect(page.locator('#page-text')).toContainText('pagina uno');
 });
+
+test('book reader supports integrated immersive reading and zoom',async({page})=>{await uploadPDF(page);await page.getByRole('button',{name:'Lectura inmersiva',exact:true}).click();await expect(page.locator('.navigation')).toBeHidden();await expect(page.locator('#pdf-canvas')).toBeVisible();await page.getByLabel('Tamaño de lectura',{exact:true}).selectOption('1.5');await expect(page.locator('#reader-status')).toHaveText('Página 1 de 2');await page.getByRole('button',{name:'Salir de lectura inmersiva',exact:true}).click();await expect(page.locator('.navigation')).toBeVisible();await page.getByRole('link',{name:'Recetario',exact:true}).click();await expect(page.locator('body')).not.toHaveClass(/reader-focus/);});

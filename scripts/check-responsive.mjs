@@ -9,6 +9,7 @@ try {
     const errors = [], extraResources = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.route('**/*', async route => {
+      if(route.request().url().includes('.supabase.co/rest/v1/rpc/public_works'))return route.fulfill({json:[]});
       if(route.request().url().includes('.supabase.co/rest/v1/cms_site?'))return route.fulfill({json:[{document:null,revision:0}]});
       if (route.request().isNavigationRequest() && route.request().url().split('#')[0] === 'http://127.0.0.1:4173/')
         await route.fulfill({ contentType:'text/html; charset=utf-8', body:html });

@@ -22,7 +22,7 @@ const server = http.createServer(async (req, res) => {
       'Content-Type': `${mime[path.extname(file)] || 'application/octet-stream'}; charset=utf-8`,
       'Cache-Control': 'no-cache',
       'X-Content-Type-Options': 'nosniff',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: blob: data:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: blob: data:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' https:; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     });
     res.end(await readFile(file));
   } catch { res.writeHead(404).end('Not found'); }

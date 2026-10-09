@@ -23,6 +23,10 @@ export function serviceErrorMessage(status,code,reason='') {
     email_provider_disabled:'El registro por correo está desactivado temporalmente.',
     email_not_confirmed:'Confirma tu correo antes de iniciar sesión. Revisa también la carpeta de spam.',
     invalid_credentials:'El correo o la contraseña no coinciden. Revisa tus datos o recupera el acceso.',
+    otp_expired:'El enlace de recuperación caducó o ya fue utilizado. Solicita un enlace nuevo.',
+    same_password:'Elige una contraseña diferente a la anterior.',
+    reauthentication_needed:'Por seguridad, solicita un enlace de recuperación nuevo antes de cambiar la contraseña.',
+    session_not_found:'El acceso para cambiar la contraseña ya no está disponible. Solicita un enlace nuevo.',
     captcha_failed:'No pudimos verificar el registro. El restaurante debe revisar la configuración de verificación.'
   };
   if(auth[code])return auth[code];
@@ -35,6 +39,7 @@ export class SiteService {
   constructor(config) {
     this.config=validateServiceConfig(config); this.configured=!!this.config.url;
     this.session=null; this.user=null; this.role=null; this.refreshTask=null;
+    this.authNotice='';this.authIssue='';
     this.storageKey=`balcon-session:${this.config.url}`;
   }
   get isAdmin() { return !!this.user && !!this.role; }
@@ -80,11 +85,32 @@ export class SiteService {
     if (!this.configured) return;
     try {const value=JSON.parse(sessionStorage.getItem(this.storageKey)||'null');if(value?.access_token && value?.refresh_token)this.session=value;}catch{}
     const params=new URLSearchParams(location.hash.slice(1));
-    if(params.has('access_token')) {
-      this.saveSession({access_token:params.get('access_token'),refresh_token:params.get('refresh_token'),expires_in:Number(params.get('expires_in'))});
-      history.replaceState(null,'',location.pathname+location.search+(params.get('type')==='recovery'?'#nueva-clave':'#cuenta'));
+    const url=new URL(location.href),query=url.searchParams;
+    const recovery=params.get('type')==='recovery'||query.get('type')==='recovery'||query.get('auth')==='recovery';
+    const callback=params.has('access_token')||params.has('error')||params.has('error_code')||query.has('token_hash')||query.has('code')||query.has('error')||query.has('error_code')||query.get('auth')==='recovery';
+    if(!callback){await this.verify();return;}
+    const errorCode=params.get('error_code')||query.get('error_code');
+    const errorReturned=params.has('error')||params.has('error_code')||query.has('error')||query.has('error_code');
+    const tokenHash=query.get('token_hash'),tokenType=query.get('type');
+    // Remove credentials before any network request or further navigation.
+    for(const key of ['auth','type','token_hash','code','error','error_code','error_description'])query.delete(key);
+    const cleanPath=url.pathname+(query.size?'?'+query.toString():'');
+    const returnTo=hash=>history.replaceState(null,'',cleanPath+hash);
+    returnTo(recovery?'#nueva-clave':'#cuenta');
+    this.clear();
+    try{
+      if(errorReturned)throw new Error(serviceErrorMessage(400,errorCode)||'No pudimos usar este enlace. Puede haber caducado o ya haber sido utilizado. Solicita uno nuevo.');
+      if(params.get('access_token')&&params.get('refresh_token'))this.saveSession({access_token:params.get('access_token'),refresh_token:params.get('refresh_token'),expires_in:Number(params.get('expires_in'))});
+      else if(tokenHash&&['recovery','signup','email'].includes(tokenType)){
+        const data=await this.request('/auth/v1/verify',{method:'POST',json:{token_hash:tokenHash,type:tokenType},authorized:false});this.saveSession(data);
+      }else throw new Error('Este enlace no contiene el acceso necesario. Solicita un enlace nuevo y abre el último correo recibido.');
+      if(!this.session)throw new Error('No pudimos activar el acceso de este enlace. Solicita uno nuevo.');
+      await this.verify();
+      this.authNotice=recovery?'Enlace verificado. Escribe y confirma tu nueva contraseña.':'Correo confirmado. Ya puedes usar tu cuenta.';
+    }catch(error){
+      this.clear();this.authIssue=error.status===401?'El enlace de recuperación caducó o ya no es válido. Solicita un enlace nuevo.':error.message;
+      returnTo(recovery?'#recuperar':'#cuenta');
     }
-    await this.verify();
   }
   async login(email,password) {
     this.clear();const data=await this.request('/auth/v1/token?grant_type=password',{method:'POST',json:{email:email.trim().toLowerCase(),password},authorized:false});this.saveSession(data);await this.verify();
@@ -97,8 +123,17 @@ export class SiteService {
     if(data?.access_token){this.saveSession(data);await this.verify();return true;}return false;
   }
   async logout() {try{if(this.session)await this.request('/auth/v1/logout',{method:'POST'});}finally{this.clear();}}
-  async recover(email) {return this.request(`/auth/v1/recover?redirect_to=${encodeURIComponent(location.origin+location.pathname)}`,{method:'POST',json:{email},authorized:false});}
-  async changePassword(password) {return this.request('/auth/v1/user',{method:'PUT',json:{password}});}
+  async recover(email) {
+    const normalizedEmail=email.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail))throw new Error('Revisa que el correo esté escrito correctamente.');
+    const destination=location.origin+location.pathname+'?auth=recovery';
+    return this.request(`/auth/v1/recover?redirect_to=${encodeURIComponent(destination)}`,{method:'POST',json:{email:normalizedEmail},authorized:false});
+  }
+  async changePassword(password) {
+    if(!this.user||!this.session)throw new Error('Abre el enlace de recuperación de tu correo antes de cambiar la contraseña.');
+    if(typeof password!=='string'||password.length<12||password.length>128)throw new Error('Usa una contraseña de entre 12 y 128 caracteres.');
+    return this.request('/auth/v1/user',{method:'PUT',json:{password}});
+  }
   async published() {const rows=await this.request('/rest/v1/cms_site?id=eq.1&select=document,revision,updated_at',{authorized:false});return rows?.[0] || {document:null,revision:0};}
   async publish(document,revision) {if(!this.isAdmin)throw new Error('Necesitas permisos de administrador.');return this.request('/rest/v1/rpc/publish_site',{method:'POST',json:{expected_revision:revision,new_document:document}});}
   async history() {if(!this.isAdmin)throw new Error('Necesitas permisos de administrador.');return this.request('/rest/v1/cms_revisions?select=revision,document,created_at&order=revision.desc&limit=20');}

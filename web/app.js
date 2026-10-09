@@ -41,6 +41,8 @@ function renderMenu() {
   renderDishes(false);
 }
 function renderDishes(refresh=true) {
+  for(const button of document.querySelectorAll('[data-recipe-context]'))button.dataset.recipeContext=recipeMenu;
+  for(const button of document.querySelectorAll('[data-cms-add="recipes"][data-menu-context]'))button.dataset.menuContext=recipeMenu;
   const filtered = content.recipes.filter(item => (!recipeMenu || (item.menuIds||[]).includes(recipeMenu)) && (category === 'Todos' || (category === 'Favoritos' ? favorites.has(item.id) : item.category === category)) && normalize([item.name,...item.ingredients,item.utilization||'',item.technique||'',item.research||''].join(' ')).includes(normalize(query)));
   const menu=content.recipeMenus.find(item=>item.id===recipeMenu),selection=document.querySelector('#recipe-menu-selection');if(selection){selection.hidden=!menu;selection.innerHTML=menu?`<h2>${esc(menu.name)}</h2><p>${esc(menu.description)}</p>`:'';}
   document.querySelector('#result-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'plato' : 'platos'}`;
@@ -73,7 +75,7 @@ function route() {
   else {
     if(tab==='recetario')renderMenu();else if(tab==='libro')renderBook({mount:false});else if(tab==='noticias')renderNews();else if(tab==='comparte'){main.innerHTML=work.markup(content)+work.galleryMarkup(content);void work.load();void work.loadPublic();}else main.innerHTML=customPageMarkup(content.pages.find(page=>page.id===tab),{editing:admin.isAdmin});
     if(['noticias','recetario','libro','comparte'].includes(tab))main.insertAdjacentHTML('beforeend',extraBlocksMarkup(content,tab,{editing:admin.isAdmin}));
-    main.insertAdjacentHTML('afterbegin',admin.addMarkup(tab));
+    main.insertAdjacentHTML('afterbegin',admin.addMarkup(tab,{recipeMenu}));
     layout?.mount(tab);
     disposeCarousels=mountCarousels(main);
     animateRoute();
@@ -269,7 +271,7 @@ try {
   const service=new SiteService(config);
   work=createWork({service,notify:toast});
   layout=createLayout({getSite:()=>content,getAdmin:()=>admin,notify:toast});
-  admin=createAdmin({service,work,initialSite:content,onPreview(site){validateSiteDocument(site);content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
+  admin=createAdmin({service,work,initialSite:content,onPreview(site){validateSiteDocument(site);const added=site.recipes.find(item=>!content.recipes.some(previous=>previous.id===item.id));if(added){category='Todos';query='';if(recipeMenu&&!(added.menuIds||[]).includes(recipeMenu))recipeMenu='';}content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
   await admin.initialize();uiReady=true;updateShell();
   try { const stored = JSON.parse(localStorage.getItem(favoritesKey) || '[]'); if (Array.isArray(stored)) favorites = new Set(stored.filter(id => content.recipes.some(x => x.id === id))); } catch { /* Storage is optional. */ }
   route();

@@ -13,6 +13,7 @@ export default defineConfig({
   projects: [
     { name: 'desktop', testMatch: ['**/pilot.spec.js', '**/carousel.spec.js', '**/cms.spec.js'], use: { browserName: 'chromium', viewport: { width: 1360, height: 960 } } },
     { name: 'mobile', testMatch: ['**/pilot.spec.js', '**/carousel.spec.js', '**/cms.spec.js'], use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    { name: 'tablet', testMatch: ['**/cms.spec.js'], use: { browserName: 'chromium', viewport: { width: 820, height: 1180 }, isMobile: true, hasTouch: true } },
     { name: 'standalone-desktop', metadata: { standalone: true }, use: { browserName: 'chromium', viewport: { width: 1360, height: 960 } } },
     { name: 'standalone-mobile', metadata: { standalone: true }, use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } }
   ],

@@ -75,6 +75,7 @@ export function validateSiteDocument(site) {
     if(item.size && (!Number.isFinite(item.size)||item.size<10||item.size>100))throw new Error('El tamaño de texto debe estar entre 10 y 100 px.');
     if(item.align && !['left','center','right'].includes(item.align))throw new Error('Elige una alineación válida.');
     if(item.icon && !iconNames.includes(item.icon))throw new Error('Elige un icono disponible.');
+    if(item.positions){if(typeof item.positions!=='object'||Array.isArray(item.positions))throw new Error('Revisa las posiciones del elemento.');for(const[screen,pos]of Object.entries(item.positions)){if(!['phone','tablet','desktop'].includes(screen)||!pos||typeof pos.container!=='string'||!/^[a-z0-9:._-]{1,300}$/i.test(pos.container)||!Number.isFinite(pos.x)||pos.x<0||pos.x>1||!Number.isFinite(pos.y)||pos.y<0||pos.y>50000||!Number.isFinite(pos.width)||pos.width<=0||pos.width>1)throw new Error('Revisa la posición libre del elemento.');}}
     if(item.placement && [item.placement.container,item.placement.before].some(k=>typeof k!=='string'||!/^[a-z0-9:._-]{1,300}$/i.test(k)))throw new Error('Revisa el destino del elemento.');
   }
   const walk=(value,key='')=>{

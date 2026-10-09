@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { createSiteDocument, validateSiteDocument, safeHref, imageURL } from '../web/site-model.js';
 import { validateServiceConfig } from '../web/service.js';
+import { setContentField } from '../web/content-binding.js';
 const seed=JSON.parse(await readFile(new URL('../Sources/Resources/content.json',import.meta.url)));
 const document=createSiteDocument(seed);
 
@@ -18,6 +19,16 @@ test('URLs, document validation and service configuration reject unsafe inputs',
  assert.throws(()=>validateServiceConfig({url:'https://example.supabase.co',publishableKey:jwt}));
  assert.throws(()=>validateServiceConfig({url:'http://example.supabase.co',publishableKey:'sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxx'}));
  assert.doesNotThrow(()=>validateSiteDocument(document));
+});
+
+test('free layout positions reject invalid geometry and content bindings reject prototype paths',()=>{
+ const value=structuredClone(document);value.elementOverrides={'page-noticias:section-home-hero.h1-0':{positions:{tablet:{container:'page-noticias',x:.1,y:600,width:.8}}}};
+ assert.doesNotThrow(()=>validateSiteDocument(value));
+ for(const patch of [{x:-1},{y:Infinity},{width:0},{container:'<script>'}]){const invalid=structuredClone(value);Object.assign(Object.values(invalid.elementOverrides)[0].positions.tablet,patch);assert.throws(()=>validateSiteDocument(invalid));}
+ assert.throws(()=>setContentField(value,'__proto__.polluted','unsafe'));
+ assert.throws(()=>setContentField(value,'home.constructor.prototype.polluted','unsafe'));
+ assert.equal({}.polluted,undefined);
+ setContentField(value,'recipes.'+value.recipes[0].id+'.name','Nombre compartido');assert.equal(value.recipes[0].name,'Nombre compartido');
 });
 
 test('PostgreSQL policies enforce visitor, administrator and owner permissions',async()=>{

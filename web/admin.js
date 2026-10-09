@@ -1,3 +1,4 @@
+import {setContentField} from './content-binding.js';
 import { esc, linkAttributes } from './markup.js';
 import { clone, validateSiteDocument, iconNames, sectionBlocks, createSiteDocument, imageURL } from './site-model.js';
 const panels=[['overview','Resumen'],['appearance','Diseño e identidad'],['location','Ubicación y mapa'],['colors','Colores y temas'],['home','Portada y carrusel'],['news','Noticias'],['recipes','Recetario'],['menus','Menús y secciones'],['shortcuts','Accesos directos'],['book','Nuestro libro'],['works','Trabajos y colaboración'],['publish','Publicación y versiones'],['users','Usuarios y cuenta']];
@@ -36,11 +37,11 @@ export function createAdmin({service,initialSite,onPreview,onAccountChange,notif
  let confirmAction;
  const draftKey=()=>`${service.config.url}:${service.user?.id}`;
  const announce=message=>notify(message);
- const preview=()=>{onPreview(clone(draft));onAccountChange();};
+ const preview=()=>onPreview(clone(draft));
  const guard=()=>{if(!service.isAdmin){location.hash='#cuenta';throw new Error('Necesitas permisos de administrador.');}};
  async function remember(){try{await draftStorage(draftKey(),'put',{document:draft,baseRevision,dirty});}catch{announce('El borrador está en esta visita. Exporta una copia para conservarlo.');}}
  async function apply(next){guard();validateSiteDocument(next);draft=next;dirty=JSON.stringify(draft)!==JSON.stringify(published);await remember();preview();}
- async function restoreDraft(){if(!service.isAdmin)return;try{const saved=await draftStorage(draftKey(),'get');if(saved?.dirty){validateSiteDocument(saved.document);draft=saved.document;baseRevision=saved.baseRevision;dirty=true;}}catch{}preview();}
+ async function restoreDraft(){if(!service.isAdmin)return;try{const saved=await draftStorage(draftKey(),'get');if(saved?.dirty){const restored=createSiteDocument(saved.document);validateSiteDocument(restored);draft=restored;baseRevision=saved.baseRevision;dirty=true;}}catch{}preview();}
  function ask(title,body,action){confirmAction=action;confirm.innerHTML=`<h2 id="cms-confirm-title">${esc(title)}</h2><p>${esc(body)}</p><div class="actions"><button class="button secondary" data-cms-cancel>Cancelar</button><button class="button" data-cms-confirm>Continuar</button></div>`;confirm.showModal();}
  const loadingButton=async(button,action)=>{if(busy)return;busy=true;if(button)button.disabled=true;try{await action();}catch(error){announce(error.message || 'No pudimos completar la acción.');}finally{busy=false;if(button?.isConnected)button.disabled=false;}};
  function renderField(spec,object) {
@@ -73,6 +74,14 @@ export function createAdmin({service,initialSite,onPreview,onAccountChange,notif
     else {value=String(value||'').trim();const input=form.elements.namedItem(spec.path);if(!value&&input?.dataset.retain)value=input.dataset.retain;}
     if(['date','complexity','sourceURL'].includes(spec.path)&&value==='')value=null;
     set(item,spec.path,value);
+  }
+ }
+ function clearPresentationOverrides(document,type,id){
+  const matches=key=>type==='home'?/section-home-(hero|welcome)/.test(key):type==='appearance'?/^(cabecera|pie):/.test(key):type==='recipePage'?key.includes('recipe-heading'):type==='workPage'?/work-(heading|gallery|explanation)/.test(key):type==='book'?key.includes('page-libro:'):type==='location'?key.startsWith('ubicacion:'):type==='navigation'?key.includes('navegacion:')&&key.includes(id):type==='recipes'?key.includes('recipe-'+id):type==='news'?key.includes('news-'+id):type==='blocks'?key.includes('block-'+id):type==='pages'?key.includes('page-'+id+':')&&key.includes('custom-heading'):false;
+  for(const[key,value]of Object.entries(document.elementOverrides||{}))if(matches(key)){
+   delete value.text;
+   // An extra photograph belongs to its element, even when a panel changes its text.
+   if(/(?:^|\.)img-\d+$/.test(key)){delete value.image;delete value.alt;}
   }
  }
  function openEditor(type,id='',working) {
@@ -178,8 +187,8 @@ export function createAdmin({service,initialSite,onPreview,onAccountChange,notif
     guard();
     if(form.hasAttribute('data-cms-chef')){await service.setChef(values.get('email'));await service.verify();adminItems=await service.admins();onAccountChange();announce('Cuenta del chef Checo asignada.');return;}
     if(form.hasAttribute('data-cms-grant')){await service.setAdmin(values.get('email'),true);adminItems=await service.admins();onAccountChange();announce('Acceso de administrador actualizado.');return;}
-    const next=clone(draft),state=editorState;if(state.type==='element'){const item=clone(editorWorking);readFields(form,item,'element');next.elementOverrides||={};next.elementOverrides[state.id]=item;await apply(next);drawer.close();announce('Elemento actualizado en el borrador.');return;}const item=state.newItem?clone(editorWorking):state.documentLevel?next:findItem(state.type,state.id,next);
-    const previousTitle=item.title;readFields(form,item,state.type);if(state.newItem)next[state.type].push(item);if(state.type==='blocks')transferBlock(next,item.id,values.get('blockDestination'));if(state.type==='pages'){const nav=next.navigation.find(x=>x.id===item.id);if(nav?.label===previousTitle)nav.label=item.title;}
+    const next=clone(draft),state=editorState;if(state.type==='element'){const item=clone(editorWorking);readFields(form,item,'element');for(const[property,path]of Object.entries(state.bindings||{})){setContentField(next,path,item[property]);delete item[property];}next.elementOverrides||={};next.elementOverrides[state.id]=item;await apply(next);drawer.close();announce('Elemento actualizado en el borrador.');return;}const item=state.newItem?clone(editorWorking):state.documentLevel?next:findItem(state.type,state.id,next);
+    const previousTitle=item.title;readFields(form,item,state.type);clearPresentationOverrides(next,state.type,state.id);if(state.newItem)next[state.type].push(item);if(state.type==='blocks')transferBlock(next,item.id,values.get('blockDestination'));if(state.type==='pages'){const nav=next.navigation.find(x=>x.id===item.id);if(nav?.label===previousTitle)nav.label=item.title;}
     await apply(next);drawer.close();announce('Borrador actualizado. Revisa y publica cuando esté listo.');
    }catch(caught){if(error){error.textContent=caught.message;error.hidden=false;}else throw caught;}
   });
@@ -192,7 +201,7 @@ export function createAdmin({service,initialSite,onPreview,onAccountChange,notif
  return {
   get isAdmin(){return service.isAdmin;},get dirty(){return dirty;},get configured(){return service.configured;},
   adminMarkup,accountMarkup,applyDocument:apply,
-  editElement(key,defaults,tag,group){guard();const item={...defaults,...draft.elementOverrides?.[key]};for(const token of ['@table','@chef','@brand'])if(item.image===imageURL(token))item.image=token;openEditor('element',key,item);if(group)drawer.querySelector('[name="text"]').closest('.cms-field').hidden=true;},
+  editElement(key,defaults,tag,group,bindings={}){guard();const item={...defaults,...draft.elementOverrides?.[key]};for(const token of ['@table','@chef','@brand'])if(item.image===imageURL(token))item.image=token;openEditor('element',key,item);editorState.bindings=bindings;if(group)drawer.querySelector('[name="text"]').closest('.cms-field').hidden=true;},
   toolsMarkup(){return service.isAdmin?`<a href="#admin" class="button secondary">Panel de administración</a><span>${dirty?'Borrador sin publicar':'Edición de administrador'}</span><a href="#noticias" class="button secondary">Vista previa</a><button class="button secondary" data-layout-toggle aria-pressed="false">Editar todos los elementos</button><button class="button secondary" data-layout-reset-all>Restaurar acomodo original</button><button class="button" data-cms-publish ${dirty?'':'disabled'}>Publicar</button>`:'';},
   addMarkup(section,{recipeMenu=''}={}){return service.isAdmin?`<div class="section-admin-toolbar"><span>Editar esta sección</span><div class="panel-actions">${section==='recetario'?`<button class="button" data-cms-add="recipes" data-menu-context="${esc(recipeMenu)}">+ Agregar platillo</button>`:''}<button class="button secondary" data-cms-add-menu="${section}" data-recipe-context="${esc(recipeMenu)}">+ Agregar</button></div></div>`:'';},
   accountTools(){return service.user?`<a href="#${service.isAdmin?'admin':'cuenta'}">${service.isAdmin?'Administrar':'Mi cuenta'}</a><button data-account-logout>Cerrar sesión</button>`:'<a href="#cuenta">Iniciar sesión</a><a href="#registro">Registro</a>';},

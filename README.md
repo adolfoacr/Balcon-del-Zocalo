@@ -6,7 +6,7 @@ La versión web publicada está en https://adolfoacr.github.io/Balcon-del-Zocalo
 
 ## Qué puedes probar
 
-- Carruseles de fotografías e historias con cambio automático cada 3 segundos, flechas y pausa. El avance se detiene mientras el carrusel tiene foco, al pasar el ratón y cuando la página queda oculta. Con movimiento reducido activado, comienza pausado y permite reproducción manual.
+- Carruseles de fotografías e historias con cambio automático cada 3 segundos, flechas, sin botón de reproducción. El avance se detiene mientras el carrusel tiene foco, al pasar el ratón y cuando la página queda oculta. Con movimiento reducido activado, comienza pausado y permite avanzar con las flechas.
 - Tarjetas editoriales del piloto y sus detalles. No se presentan como noticias oficiales.
 - Dos platos del archivo proporcionado: búsqueda por nombre o ingrediente, categorías, ingredientes y favoritos persistentes.
 - Espacio vacío para el libro, sin capítulos ni paginación inventados.
@@ -98,3 +98,5 @@ Actualización: ejecuta `supabase/upgrade-public-work.sql` después del esquema 
 La portada destaca con la misma jerarquía el área de Investigación y Desarrollo y el trabajo del chef Checo. En Administración → Recetario se crean menús y se asignan recetas; las fichas también admiten investigación, técnica, aprovechamiento y resultados. La galería comunitaria permanece separada del trabajo oficial del chef.
 
 Para proyectos que ya instalaron el esquema inicial, `actualizar.html` contiene el SQL de `supabase/upgrade-public-work.sql` y las instrucciones para activar participaciones públicas desde iPad. La configuración de correo se realiza en el proyecto Supabase; mejorar los mensajes del registro no configura el proveedor SMTP.
+
+El editor visual admite pulsaciones y arrastre táctil. Activa Editar todos los elementos, toca un elemento y usa su lápiz o cruz; puedes soltarlo en espacios vacíos o indicar coordenadas. Cada tipo de pantalla conserva su acomodo y permite restaurar la ubicación original. Los títulos, recetas y textos principales comparten datos con los paneles; aplica al borrador y publica para compartirlos.

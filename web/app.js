@@ -41,6 +41,7 @@ function renderMenu() {
   renderDishes(false);
 }
 function renderDishes(refresh=true) {
+  if(refresh)layout?.beforeRefresh();
   for(const button of document.querySelectorAll('[data-recipe-context]'))button.dataset.recipeContext=recipeMenu;
   for(const button of document.querySelectorAll('[data-cms-add="recipes"][data-menu-context]'))button.dataset.menuContext=recipeMenu;
   const filtered = content.recipes.filter(item => (!recipeMenu || (item.menuIds||[]).includes(recipeMenu)) && (category === 'Todos' || (category === 'Favoritos' ? favorites.has(item.id) : item.category === category)) && normalize([item.name,...item.ingredients,item.utilization||'',item.technique||'',item.research||''].join(' ')).includes(normalize(query)));
@@ -61,6 +62,7 @@ function renderBook({mount=true}={}) {
   if(mount)layout?.mount('libro');
 }
 function route() {
+  layout?.beforeRefresh();
   if (!content || !uiReady) return;
   disposeCarousels(); disposeCarousels = () => {};
   ++renderVersion; renderTask?.cancel();
@@ -230,6 +232,7 @@ document.addEventListener('pointercancel',()=>{swipeStart=null;});
 let resizeTimer; window.addEventListener('resize',() => { clearTimeout(resizeTimer); if (location.hash === '#libro' && book) resizeTimer = setTimeout(() => void renderPage(),150); });
 
 function updateShell() {
+  layout?.beforeRefresh();
   if(!content || !admin)return;
   const a=content.appearance;
   for(const [variable,key] of [['--paper','background'],['--ink','text'],['--gold','accent'],['--muted','muted']])if(/^#[a-f\d]{6}$/i.test(a[key]))document.documentElement.style.setProperty(variable,a[key]);
@@ -270,8 +273,8 @@ try {
   const config=serviceConfig?JSON.parse(serviceConfig.textContent):await (await fetch('/service-config.json')).json();
   const service=new SiteService(config);
   work=createWork({service,notify:toast});
-  layout=createLayout({getSite:()=>content,getAdmin:()=>admin,notify:toast});
-  admin=createAdmin({service,work,initialSite:content,onPreview(site){validateSiteDocument(site);const added=site.recipes.find(item=>!content.recipes.some(previous=>previous.id===item.id));if(added){category='Todos';query='';if(recipeMenu&&!(added.menuIds||[]).includes(recipeMenu))recipeMenu='';}content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
+  layout=createLayout({getSite:()=>content,getAdmin:()=>admin,notify:toast,onLayoutChange(){if(uiReady)route();}});
+  admin=createAdmin({service,work,initialSite:content,onPreview(site){validateSiteDocument(site);const added=site.recipes.find(item=>JSON.stringify(item)!==JSON.stringify(content.recipes.find(previous=>previous.id===item.id)));if(added){category='Todos';query='';if(recipeMenu&&!(added.menuIds||[]).includes(recipeMenu))recipeMenu='';}content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
   await admin.initialize();uiReady=true;updateShell();
   try { const stored = JSON.parse(localStorage.getItem(favoritesKey) || '[]'); if (Array.isArray(stored)) favorites = new Set(stored.filter(id => content.recipes.some(x => x.id === id))); } catch { /* Storage is optional. */ }
   route();

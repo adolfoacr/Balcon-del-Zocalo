@@ -34,7 +34,7 @@ npm ci --cache /tmp/balcon-npm-cache --no-audit --no-fund
 npm run dev
 ```
 
-El servidor usa el puerto 4173 y escucha en loopback por defecto. `HOST` y `PORT` permiten adaptar el servidor a tu entorno de desarrollo. No hay backend, cuentas, pagos ni dependencia de servicios externos durante el uso del piloto.
+El servidor usa el puerto 4173 y escucha en loopback por defecto. `HOST` y `PORT` permiten adaptar el servidor a tu entorno de desarrollo. Las cuentas, la publicación de cambios y las propuestas utilizan el proyecto Supabase configurado en web/service-config.json. La vista de muestra, los favoritos y la importación local del libro pueden utilizarse sin iniciar sesión.
 
 ```bash
 npm run check

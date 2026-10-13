@@ -159,6 +159,7 @@ export class SiteService {
     if(signed.origin!==this.config.url||!signed.pathname.startsWith('/storage/v1/object/sign/work-files/'))throw new Error('Archivo no disponible.');return signed.href;
   }
   async upload(file,kind='image') {
+    if(!file.type){const type={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',pdf:'application/pdf'}[file.name.split('.').at(-1)?.toLowerCase()];if(type)file=new File([file],file.name,{type});}
     if(!this.isAdmin)throw new Error('Necesitas permisos de administrador.');
     const types=kind==='pdf'?['application/pdf']:['image/jpeg','image/png','image/webp','image/gif'];
     if(!types.includes(file.type) || file.size>(kind==='pdf'?30:6)*1024*1024)throw new Error(kind==='pdf'?'Elige un PDF de hasta 30 MB.':'Elige una imagen JPG, PNG, WebP o GIF de hasta 6 MB.');

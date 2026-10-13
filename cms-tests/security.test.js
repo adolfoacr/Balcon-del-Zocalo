@@ -5,8 +5,20 @@ import { PGlite } from '@electric-sql/pglite';
 import { createSiteDocument, validateSiteDocument, safeHref, imageURL } from '../web/site-model.js';
 import { validateServiceConfig } from '../web/service.js';
 import { setContentField } from '../web/content-binding.js';
+import {removeSection,removeContentItem,removeVisualContent} from '../web/content-actions.js';
 const seed=JSON.parse(await readFile(new URL('../Sources/Resources/content.json',import.meta.url)));
 const document=createSiteDocument(seed);
+
+test('content removal clears collections and supports empty navigation and carousels',()=>{
+ const site=structuredClone(document);site.recipeMenus=[{id:'menu-test',name:'Prueba'}];site.recipes[0].menuIds=['menu-test'];
+ removeContentItem(site,'recipeMenus','menu-test');assert.deepEqual(site.recipes[0].menuIds,[]);
+ assert.throws(()=>removeContentItem(site,'recipes','does-not-exist'));assert.equal(site.recipes.length,2);
+ for(const slide of [...site.home.slides])removeContentItem(site,'slides',slide.id);
+ for(const nav of [...site.navigation])removeSection(site,nav.id);
+ assert.doesNotThrow(()=>validateSiteDocument(site));assert.equal(createSiteDocument(site).navigation.length,0);
+ const value=structuredClone(document);value.home.image='@table';const migrated=createSiteDocument(value);assert.equal(migrated.home.slides[0].image,'@table');assert.equal(migrated.home.image,undefined);
+ removeVisualContent(value,{key:'page-noticias:section-home-hero'});assert.equal(value.home.slides.length,0);assert.equal(value.elementOverrides['page-noticias:section-home-hero'].removed,true);
+});
 
 test('URLs, document validation and service configuration reject unsafe inputs',()=>{
  assert.equal(safeHref('javascript:alert(1)',''),'');

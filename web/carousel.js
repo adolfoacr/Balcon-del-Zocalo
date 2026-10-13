@@ -18,6 +18,7 @@ export function mountCarousels(root) {
     function show(index) {
       current = (index + slides.length) % slides.length;
       slides.forEach((slide, i) => { slide.hidden = i !== current; });
+      const track=carousel.querySelector('.block-carousel-track');if(track)track.style.height=slides[current].querySelector('img')?.style.height||'';
       counter.textContent = `${current + 1} / ${slides.length}`;
       carousel.dataset.activeSlide = String(current);
     }

@@ -5,7 +5,7 @@ const start = new Date('2026-10-07T12:00:00Z');
 test.beforeEach(async ({page}, info) => {
   if (info.project.metadata.standalone) await standaloneOnly(page); else await mockPublicSite(page);
   await page.clock.install({time:start});
-  await page.clock.pauseAt(start);
+  await page.clock.pauseAt(new Date(start.getTime()+60000));
 });
 const hero = page => page.locator('[data-carousel="carrusel de portada"]');
 const stories = page => page.locator('[data-carousel="carrusel de historias"]');

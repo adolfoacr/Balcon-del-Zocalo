@@ -29,3 +29,15 @@ Crear platillos: con permisos de administrador, Recetario muestra **Agregar plat
 Comprobación posterior: `public_works` ya respondió HTTP 200 en el proyecto real durante la publicación de las correcciones de recuperación y alta de platillos. No es necesario repetir la migración si la galería ya funciona.
 
 Los cambios se muestran inmediatamente al aplicar al borrador. El lápiz de un título, receta, portada o pie utiliza los mismos datos que su panel de administración; cambiar de editor no recupera un texto anterior. Las imágenes añadidas a un título se conservan al editarlo desde su panel. Pulsa Publicar para compartir los cambios en otros dispositivos. El borrador se conserva en este navegador y cuenta, sin sustituirlo por una versión antigua al recargar.
+
+## Edición, imágenes y eliminación
+
+Cada módulo muestra lápiz, mover y eliminar para administradores, incluidos las tarjetas de I+D y Checo, Nuestro libro, Comparte tu trabajo y el pie. Tocar un texto permite editarlo; Editar todos los elementos también permite seleccionar enlaces y botones. Los controles se mantienen estables al desplazarse.
+
+La cabecera admite texto, imagen o ambos. Cambiar el nombre actualiza el título visible; cargar una imagen permite usarla en su lugar. La imagen actual se muestra como vista previa; la carga informa su progreso y resultado dentro del editor. El botón Aplicar se deshabilita durante la carga para evitar que guarde el archivo anterior. El editor de la portada cambia la diapositiva activa, y el lápiz de un carrusel cambia su fotografía en lugar de añadir una encima. Se recuperan los borradores antiguos que guardaron esa imagen como una superposición.
+
+Las imágenes admiten ancho porcentual, alto en píxeles, relleno/recorte o vista completa y encuadre horizontal/vertical. Las dimensiones se comparten entre el editor visual y los editores de contenido. El movimiento libre permite elegir zona, coordenadas y ancho. La última pieza movida tiene prioridad; el diseño reserva espacio y acomoda las piezas cercanas para evitar superposiciones. Cada tipo de pantalla conserva su disposición.
+
+Eliminar quita platillos, colecciones, noticias, bloques y secciones de su colección. Las imágenes individuales de carrusel se retiran de su lista. Los módulos de la plantilla se retiran del documento visible; se eliminan los marcos y filas vacíos. Quitar una sección elimina su acceso y sus bloques personalizados, y no la recupera al recargar. Las cuentas, propuestas privadas y archivos del servicio no se borran con los controles de diseño. Las eliminaciones siguen siendo borrador hasta Publicar.
+
+**Restaurar acomodo original recupera toda la última versión publicada**, incluidos textos, imágenes, colores, menús y posiciones; descarta las ediciones del borrador. Restaurar diseño inicial es una acción separada con confirmación: prepara el piloto inicial como borrador. Devolver a su origen en un elemento restaura solo su ubicación. El guardado local informa si el navegador no puede conservarlo; en ese caso puedes exportar el borrador.

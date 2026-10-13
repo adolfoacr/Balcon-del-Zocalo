@@ -1,12 +1,12 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=44c7136
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=3288256
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=44c7136
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=3288256
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=44c7136
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=3288256
 
-Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `44c71365a1507f1e0aa3a0d91c9fbabacdd6f1b1`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
+Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `3288256fa737295f432e5bc14d2e7b4802eb7c55`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
 La edición une los lápices y los paneles con los datos visibles. La cabecera admite texto, imagen o ambos; las imágenes tienen controles de ancho, alto, encuadre y ajuste. Cambiar la imagen de un carrusel reemplaza la diapositiva seleccionada. La carga muestra vista previa y estado, impide aplicar durante la subida y conserva el error dentro del editor.
 
@@ -30,3 +30,8 @@ La entrega final 792c505 activa Centrar y Escalar directamente al terminar el to
 
 
 La entrega 44c7136 añade únicamente el candado de posición junto a cada cruz. El bloqueo captura la ubicación, protege los controles de movimiento, centrado y escala del elemento y sus descendientes, y da prioridad a los elementos bloqueados al resolver colisiones. El estado persiste en el borrador y la publicación. El lápiz sigue disponible. Pasaron diez casos dirigidos de bloqueo, movimiento, restauración, publicación simulada y recarga en las cinco configuraciones de escritorio, móvil, tableta y HTML autocontenido; también cinco pruebas de validación y permisos, sintaxis y compilación.
+
+
+La entrega 3288256 permite superposiciones intencionales sin empujar los módulos y conserva su posición al bloquear. Añade movimiento por cuatro flechas con paso en píxeles, una sola barra de herramientas por elemento seleccionado, duplicación de módulos a otra sección y duplicación de secciones. Los carruseles nuevos usan imagen completa de altura natural y texto lateral, con disposición vertical en móvil. Cada imagen tiene ubicación, texto e información propios; también existe el texto compartido. Los textos pueden posicionarse dentro de su carrusel sin perder el cambio por diapositiva. Menús y secciones incorpora Centrar navegación; las filas de cinco accesos quedan centradas cuando caben.
+
+Pasaron 15 casos dirigidos de carruseles, diálogos, superposición, bloqueo, flechas, duplicación y recarga en cinco configuraciones. Después pasaron doce comprobaciones con los últimos ajustes en tableta y HTML autocontenido de escritorio y móvil, dos casos de navegación centrada y copia de carruseles en escritorio y móvil, y dos casos de textos individuales agrupados con su carrusel en tableta y escritorio. Pasaron doce regresiones de lápices en las cuatro secciones, sustitución de fotografías, restauración y ciclo del carrusel; seis pruebas de validación y permisos y siete tamaños de pantalla (320–1366 px). Las subidas, sesiones y publicaciones de contenido se simulan; no se cambian cuentas, correos ni contenido de producción. Estas pruebas usan Chromium y no equivalen a un iPad físico.

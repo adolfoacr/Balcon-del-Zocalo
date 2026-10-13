@@ -36,7 +36,7 @@ test('URLs, document validation and service configuration reject unsafe inputs',
 test('free layout positions reject invalid geometry and content bindings reject prototype paths',()=>{
  const value=structuredClone(document);value.elementOverrides={'page-noticias:section-home-hero.h1-0':{positions:{tablet:{container:'page-noticias',x:.1,y:600,width:.8}}}};
  assert.doesNotThrow(()=>validateSiteDocument(value));
- for(const patch of [{x:-1},{y:Infinity},{width:0},{container:'<script>'}]){const invalid=structuredClone(value);Object.assign(Object.values(invalid.elementOverrides)[0].positions.tablet,patch);assert.throws(()=>validateSiteDocument(invalid));}
+ for(const patch of [{x:-2},{y:Infinity},{width:0},{container:'<script>'}]){const invalid=structuredClone(value);Object.assign(Object.values(invalid.elementOverrides)[0].positions.tablet,patch);assert.throws(()=>validateSiteDocument(invalid));}
  assert.throws(()=>setContentField(value,'__proto__.polluted','unsafe'));
  assert.throws(()=>setContentField(value,'home.constructor.prototype.polluted','unsafe'));
  assert.equal({}.polluted,undefined);
@@ -164,4 +164,8 @@ test('registration keeps real authentication separate from administrator lookup 
   const service=new SiteService(config);assert.equal(await service.register(' Participant ',' PERSON@example.test ','test-password-1234'),true);assert.equal(service.user.email,'person@example.test');assert.equal(service.isAdmin,false);assert.match(service.roleIssue,/permisos/);const payload=JSON.parse(requests[0].options.body);assert.equal(payload.email,'person@example.test');assert.equal(payload.data.full_name,'Participant');
   for(const [status,code,msg,expected]of [[429,'over_email_send_rate_limit','',/límite de envío/],[422,'email_address_not_authorized','',/destinatario/],[500,'unexpected_failure','Error sending confirmation email',/servicio de envío/]]){globalThis.fetch=async()=>new Response(JSON.stringify({code,msg}),{status});await assert.rejects(new SiteService(config).register('Name','person@example.test','test-password-1234'),expected);}
  }finally{globalThis.fetch=original;if(originalLocation===undefined)delete globalThis.location;else globalThis.location=originalLocation;}
+});
+
+test('cloned presentation snapshots escape text and reject executable tags, attributes and styles',async()=>{
+ const {snapshotMarkup}=await import('../web/clone-content.js');const html=snapshotMarkup({tag:'script',attrs:{onload:'alert(1)',src:'javascript:alert(1)'},style:{backgroundColor:'url(javascript:alert(1))'},children:[{text:'<img src=x onerror=alert(1)>'}]});assert(!html.includes('<script'));assert(!html.includes('onload='));assert(html.includes('&lt;img'));assert(!html.includes('style='));
 });

@@ -1,6 +1,7 @@
 // Bind visual edits to the same fields used by the administration panels.
+const getContentFieldForBlockMode=group=>group.dataset.textMode||'shared';
 export function elementBindings(el){
- const group=el.closest('[data-layout-key]'),id=group?.dataset.layoutKey;
+ const group=el.closest('[data-layout-key]'),id=group?.dataset.layoutKey;if(group?.hasAttribute('data-snapshot-group'))return {};
  const field=(path,property='text')=>({[property]:path});
  if(el.matches('.footer>span')){const index=[...el.parentElement.children].indexOf(el);return field(['restaurantName','brand.footer','brand.subtitle'][index]);}
  const nav=el.closest('[data-nav]');if(nav){if(el.tagName==='IMG')return field(`navigation.${nav.dataset.nav}.image`,'image');return field(`navigation.${nav.dataset.nav}.label`);}
@@ -12,10 +13,11 @@ export function elementBindings(el){
  if(el.matches('.pilot-label'))return field('brand.badge');
  if(id==='home-hero'){
   if(el===group){const index=Number(group.dataset.activeSlide)||0;return {image:`home.slides.${index}.image`,alt:`home.slides.${index}.alt`};}
-  if(el.tagName==='H1')return field('home.title');
-  if(el.matches('.hero-copy>p'))return field('home.description');
-  if(el.matches('.hero-copy>.eyebrow'))return field('home.eyebrow');
-  if(el.matches('.hero-copy>a'))return {text:'home.buttonLabel',link:'home.buttonLink',icon:'home.buttonIcon'};
+  const active=Number(group.dataset.activeSlide)||0,individual=group.dataset.copyMode==='individual';
+  if(el.tagName==='H1')return field(individual?`home.slides.${active}.title`:'home.title');
+  if(el.matches('.hero-copy>p'))return field(individual?`home.slides.${active}.text`:'home.description');
+  if(el.matches('.hero-copy>.eyebrow'))return field(individual?`home.slides.${active}.eyebrow`:'home.eyebrow');
+  if(el.matches('.hero-copy>a'))return {text:individual?`home.slides.${active}.buttonLabel`:'home.buttonLabel',link:individual?`home.slides.${active}.buttonLink`:'home.buttonLink',icon:'home.buttonIcon'};
   if(el.matches('.hero-copy>.intro-photo'))return field('home.image','image');
   const slide=el.closest('[data-carousel-slide]');if(el.tagName==='IMG'&&slide){const index=[...group.querySelectorAll('.hero-slide')].indexOf(slide);return {image:`home.slides.${index}.image`,alt:`home.slides.${index}.alt`};}
  }
@@ -42,7 +44,7 @@ export function elementBindings(el){
  if(id==='work-gallery'){if(el===group)return field('workPage.galleryImage','image');if(el.matches('.lab-heading h2'))return field('workPage.galleryTitle');if(el.matches('.lab-heading p'))return field('workPage.galleryDescription');if(el.matches('.lab-banner-image'))return field('workPage.galleryImage','image');}
  if(id?.startsWith('recipe-')&&!['recipe-heading','recipe-tools','recipe-menus','recipe-dishes'].includes(id)){const prefix='recipes.'+id.slice(7);if(el===group)return field(prefix+'.image','image');if(el.tagName==='H3')return field(prefix+'.name');if(el.matches('.dish-content>p'))return field(prefix+'.description');if(el.matches('.recipe-photo'))return field(prefix+'.image','image');if(el.matches('[data-recipe]'))return field(prefix+'.buttonLabel');}
  if(id?.startsWith('news-')){const prefix='news.'+id.slice(5);if(el===group)return field(prefix+'.image','image');if(el.tagName==='H3')return field(prefix+'.title');if(el.matches('.news-content>p'))return field(prefix+'.excerpt');if(el.tagName==='IMG')return field(prefix+'.image','image');if(el.matches('.text-link'))return field(prefix+'.buttonLabel');}
- if(id?.startsWith('block-')){const prefix='blocks.'+id.slice(6),carousel=group.querySelector('[data-carousel]'),slide=el.closest('[data-carousel-slide]');if(carousel&&(el===group||slide)){const index=slide?[...carousel.querySelectorAll('[data-carousel-slide]')].indexOf(slide):Number(carousel.dataset.activeSlide)||0;return {image:`${prefix}.slides.${index}.image`,alt:`${prefix}.slides.${index}.alt`};}if(el===group)return field(prefix+'.image','image');if(el.tagName==='H2')return field(prefix+'.title');if(el.matches('.block-copy>p'))return field(prefix+'.text');if(el.matches('.block-image'))return field(prefix+'.image','image');if(el.tagName==='A')return {text:prefix+'.buttonLabel',link:prefix+'.link'};}
+ if(id?.startsWith('block-')){const prefix='blocks.'+id.slice(6),carousel=group.querySelector('[data-carousel]'),slide=el.closest('[data-carousel-slide]');if(carousel&&(el===group||slide)){const index=slide?[...carousel.querySelectorAll('[data-carousel-slide]')].indexOf(slide):Number(carousel.dataset.activeSlide)||0;const own=getContentFieldForBlockMode(group)==='individual',base=own?`${prefix}.slides.${index}`:prefix;if(el.tagName==='IMG'||el===group)return {image:`${prefix}.slides.${index}.image`,alt:`${prefix}.slides.${index}.alt`};if(el.tagName==='H2')return field(base+'.title');if(el.matches('.carousel-copy>p'))return field(base+'.text');if(el.matches('.carousel-copy>.eyebrow'))return field(base+'.eyebrow');if(el.tagName==='A')return {text:base+'.buttonLabel',link:base+(own?'.buttonLink':'.link')};}if(el===group)return field(prefix+'.image','image');if(el.tagName==='H2')return field(prefix+'.title');if(el.matches('.block-copy>p'))return field(prefix+'.text');if(el.matches('.block-image'))return field(prefix+'.image','image');if(el.tagName==='A')return {text:prefix+'.buttonLabel',link:prefix+'.link'};}
  return {};
 }
 export function getContentField(site,path){

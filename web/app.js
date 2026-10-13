@@ -1,3 +1,4 @@
+import {getContentField} from './content-binding.js';
 import {applyImageSizing} from './image-sizing.js';
 import {createLayout} from "./layout.js";
 import { mountCarousels } from "./carousel.js";
@@ -27,10 +28,15 @@ function dishArt(kind) {
 function toast(message) { clearTimeout(toastTimer); const el = document.querySelector('#toast'); el.textContent = message; el.hidden = false; toastTimer = setTimeout(() => el.hidden = true, 3200); }
 function persistFavorites() { try { localStorage.setItem(favoritesKey, JSON.stringify([...favorites])); } catch { toast('Favorito guardado durante esta visita; el navegador no permite conservarlo.'); } }
 function favoriteButton(item) { const saved = favorites.has(item.id); return `<button class="favorite-button" data-favorite="${esc(item.id)}" aria-pressed="${saved}" aria-label="${saved ? 'Quitar de favoritos' : 'Guardar en favoritos'}: ${esc(item.name)}">${saved ? '♥' : '♡'}</button>`; }
-function openDetail(kind, id) {
-  const item = (kind === 'recipe' ? content.recipes : content.news).find(x => x.id === id); if (!item) return;
+function openCarouselDetail(kind,id,index){
+ const parent=kind==='home'?content.home:getContentField(content,'blocks.'+id);if(!parent)return;const slide=parent.slides?.[index];if(!slide)return;const individual=(kind==='home'?parent.carouselTextMode:parent.textMode)==='individual';const title=slide.dialogTitle||(individual?slide.title:parent.title)||slide.alt||'Nuestra cocina';const body=slide.dialogBody||(individual?slide.text:parent.text||parent.description)||'';
+ document.querySelector('#detail-content').innerHTML=`<span class="eyebrow">${esc(slide.eyebrow||content.restaurantName)}</span><h2 id="detail-title">${esc(title)}</h2><p>${esc(body).replace(/\n/g,'<br>')}</p>`;detailOpener=document.activeElement;detail.showModal();
+}
+document.addEventListener('click',event=>{const snapshot=event.target.closest('[data-snapshot-detail]');if(snapshot){const value=JSON.parse(snapshot.dataset.snapshotDetail);openDetail(value.kind,undefined,value.item);return;}const snapshotCarousel=event.target.closest('[data-snapshot-carousel]');if(snapshotCarousel&&!event.target.closest('a,button,.carousel-controls,.edit-pencil')){const values=JSON.parse(snapshotCarousel.dataset.snapshotCarousel),value=values[Number(snapshotCarousel.dataset.activeSlide)||0];if(value)openDetail(value.kind,undefined,value.item);return;}const info=event.target.closest('[data-carousel-detail],[data-carousel-info]');if(!info||event.target.closest('.carousel-controls,.edit-pencil,#layout-edit-layer'))return;const action=event.target.closest('a,button');if(action&&!action.hasAttribute('data-carousel-detail'))return;const kind=info.dataset.carouselDetail||info.dataset.carouselInfo,index=Number(info.dataset.slideIndex??info.closest('[data-carousel]')?.dataset.activeSlide??0);openCarouselDetail(kind,info.dataset.blockId,index);});
+function openDetail(kind, id,copy) {
+  const item = copy|| (kind === 'recipe' ? content.recipes : content.news).find(x => x.id === id); if (!item) return;
   const html = kind === 'recipe' ? `<span class="eyebrow">${esc(item.category)}${item.verification==='verified'?'':' · Contenido de muestra'}</span><h2 id="detail-title">${esc(item.name)}</h2><p>${esc(item.description)}</p>${[['Investigación',item.research],['Técnica y desarrollo',item.technique],['Aprovechamiento',item.utilization],['Resultados y observaciones',item.results]].filter(([,text])=>text).map(([label,text])=>`<section class="recipe-research"><h3>${label}</h3><p>${esc(text)}</p></section>`).join('')}<h3>Ingredientes destacados</h3><ul>${item.ingredients.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${item.steps.length ? `<h3>Preparación</h3><ol>${item.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : '<p class="notice">La receta completa se añadirá cuando el restaurante comparta cantidades y preparación. Esta ficha no es una guía para cocinar.</p>'}${item.complexity ? `<p>Dificultad: ${esc(item.complexity)}</p>` : ''}${item.servings ? `<p>Porciones: ${item.servings}</p>` : ''}<button class="button" data-detail-favorite="${esc(item.id)}" aria-pressed="${favorites.has(item.id)}">${favorites.has(item.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}</button>` : `<span class="eyebrow">${esc(item.kind)}</span><h2 id="detail-title">${esc(item.title)}</h2><p>${esc(item.body)}</p>`;
-  document.querySelector('#detail-content').innerHTML = html + `<div class="detail-source"><strong>Sobre este contenido</strong><p>${esc(item.source)}</p>${safeSource(item)}</div>`;
+  document.querySelector('#detail-content').innerHTML = html + (item.source?`<div class="detail-source"><strong>Sobre este contenido</strong><p>${esc(item.source)}</p>${safeSource(item)}</div>`:'');
   detailOpener = document.activeElement;
   detail.showModal();
 }
@@ -68,6 +74,7 @@ function renderBook({mount=true}={}) {
 function route() {
   layout?.beforeRefresh();
   if (!content || !uiReady) return;
+  const activeSlides=new Map([...main.querySelectorAll('[data-carousel]')].map(el=>[el.dataset.carousel,Number(el.dataset.activeSlide)||0]));
   disposeCarousels(); disposeCarousels = () => {};
   ++renderVersion; renderTask?.cancel();
   const requested=location.hash.slice(1);if(requested!=='libro')document.body.classList.remove('reader-focus');
@@ -82,8 +89,8 @@ function route() {
     if(tab==='empty')main.innerHTML='<header class="intro"><h1>Tu espacio</h1><p>Las nuevas secciones aparecerán aquí.</p></header>';else if(tab==='recetario')renderMenu();else if(tab==='libro')renderBook({mount:false});else if(tab==='noticias')renderNews();else if(tab==='comparte'){main.innerHTML=work.markup(content)+work.galleryMarkup(content);void work.load();void work.loadPublic();}else main.innerHTML=customPageMarkup(content.pages.find(page=>page.id===tab),{editing:admin.isAdmin});
     if(['noticias','recetario','libro','comparte'].includes(tab))main.insertAdjacentHTML('beforeend',extraBlocksMarkup(content,tab,{editing:admin.isAdmin}));
     main.insertAdjacentHTML('afterbegin',admin.addMarkup(tab,{recipeMenu}));
+    disposeCarousels=mountCarousels(main,{activeSlides});
     layout?.mount(tab);
-    disposeCarousels=mountCarousels(main);
     animateRoute();
   }
   if(['admin','cuenta','registro','recuperar','nueva-clave'].includes(tab))layout?.mount(tab);

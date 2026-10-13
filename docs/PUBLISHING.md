@@ -1,12 +1,12 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=697c9f1
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=792c505
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=697c9f1
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=792c505
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=697c9f1
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=792c505
 
-Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `697c9f112f964d34967b7862e96f0171cb529030`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
+Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `792c5056b8c711c5989f193dc4fae394a5f4ddeb`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
 La edición une los lápices y los paneles con los datos visibles. La cabecera admite texto, imagen o ambos; las imágenes tienen controles de ancho, alto, encuadre y ajuste. Cambiar la imagen de un carrusel reemplaza la diapositiva seleccionada. La carga muestra vista previa y estado, impide aplicar durante la subida y conserva el error dentro del editor.
 
@@ -24,3 +24,6 @@ El libro permanece reservado para el PDF que proporcionará el usuario. Los dato
 La corrección 697c9f1 reconstruye la cabecera antes de aplicar los borradores y devuelve los elementos movidos a sus padres originales antes de renderizar. Esto evita «Cannot set properties of null (setting innerHTML)» cuando falta una parte editable de la cabecera. Los filtros del recetario y de la galería toleran que el administrador elimine su contenedor. Las imágenes incorporan cuatro anclajes de escalado con captura de puntero, cancelación, teclado, persistencia y entrada táctil real. El control Centrar elemento centra el contenido dentro de su zona; las posiciones libres también se centran.
 
 Para esta corrección pasaron los 15 casos nuevos en las cinco configuraciones de pantalla/entrega (los dos casos móviles de eliminación se ajustaron para producir en escritorio el borrador cuya cabecera está oculta en móvil). También pasaron seis regresiones de todos los lápices, movimiento y restauración, y dos comprobaciones adicionales de traslado por orden entre regiones. Las cinco pruebas de permisos, sintaxis, construcción y siete tamaños de pantalla pasaron. No se tocaron cuentas ni contenidos de producción.
+
+
+La entrega final 792c505 activa Centrar y Escalar directamente al terminar el toque, igual que los lápices, sin depender del clic que sintetiza el navegador. Pasaron cinco casos adicionales con fotografía real incrustada, arrastre mediante ratón o eventos táctiles, centrado, publicación simulada y recarga. La compilación final y sus comprobaciones npm terminaron correctamente.

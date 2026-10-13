@@ -1,12 +1,12 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=8bfffdc
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=697c9f1
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=8bfffdc
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=697c9f1
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=8bfffdc
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=697c9f1
 
-Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `8bfffdcae00ccf4d442e2197aa574d3e8b7993b0`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
+Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `697c9f112f964d34967b7862e96f0171cb529030`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
 La edición une los lápices y los paneles con los datos visibles. La cabecera admite texto, imagen o ambos; las imágenes tienen controles de ancho, alto, encuadre y ajuste. Cambiar la imagen de un carrusel reemplaza la diapositiva seleccionada. La carga muestra vista previa y estado, impide aplicar durante la subida y conserva el error dentro del editor.
 
@@ -19,3 +19,8 @@ Validación: la batería completa ejecutó 235 casos, con 228 aprobados inicialm
 Supabase está conectado mediante su clave pública y las políticas existentes. El registro requiere confirmación por correo; las restricciones del proveedor de envío se configuran en Supabase. La recuperación admite destino explícito, validación de enlaces y sesión, limpieza de credenciales de la dirección y orientación para enlaces caducados. Se conservan las guías SQL para proyectos nuevos.
 
 El libro permanece reservado para el PDF que proporcionará el usuario. Los datos gastronómicos de muestra conservan su etiqueta. Esta entrega es el piloto web adaptable; Safari → Compartir → Añadir a pantalla de inicio permite abrirlo como acceso de app.
+
+
+La corrección 697c9f1 reconstruye la cabecera antes de aplicar los borradores y devuelve los elementos movidos a sus padres originales antes de renderizar. Esto evita «Cannot set properties of null (setting innerHTML)» cuando falta una parte editable de la cabecera. Los filtros del recetario y de la galería toleran que el administrador elimine su contenedor. Las imágenes incorporan cuatro anclajes de escalado con captura de puntero, cancelación, teclado, persistencia y entrada táctil real. El control Centrar elemento centra el contenido dentro de su zona; las posiciones libres también se centran.
+
+Para esta corrección pasaron los 15 casos nuevos en las cinco configuraciones de pantalla/entrega (los dos casos móviles de eliminación se ajustaron para producir en escritorio el borrador cuya cabecera está oculta en móvil). También pasaron seis regresiones de todos los lápices, movimiento y restauración, y dos comprobaciones adicionales de traslado por orden entre regiones. Las cinco pruebas de permisos, sintaxis, construcción y siete tamaños de pantalla pasaron. No se tocaron cuentas ni contenidos de producción.

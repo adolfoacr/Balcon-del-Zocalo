@@ -8,6 +8,7 @@ import { SiteService } from "./service.js";
 import { esc, newsMarkup, customPageMarkup, extraBlocksMarkup } from "./markup.js";
 import { getPdfModule, pdfDocumentOptions } from "./pdf-runtime.js";
 const main = document.querySelector('main');
+const masthead = document.querySelector('.masthead'), mastheadTemplate = masthead.innerHTML;
 const detail = document.querySelector('#detail-dialog');
 const favoritesKey = 'balcon-favorites-v1';
 let admin, work, layout, uiReady=false;
@@ -47,8 +48,8 @@ function renderDishes(refresh=true) {
   for(const button of document.querySelectorAll('[data-cms-add="recipes"][data-menu-context]'))button.dataset.menuContext=recipeMenu;
   const filtered = content.recipes.filter(item => (!recipeMenu || (item.menuIds||[]).includes(recipeMenu)) && (category === 'Todos' || (category === 'Favoritos' ? favorites.has(item.id) : item.category === category)) && normalize([item.name,...item.ingredients,item.utilization||'',item.technique||'',item.research||''].join(' ')).includes(normalize(query)));
   const menu=content.recipeMenus.find(item=>item.id===recipeMenu),selection=document.querySelector('#recipe-menu-selection');if(selection){selection.hidden=!menu;selection.innerHTML=menu?`<h2>${esc(menu.name)}</h2><p>${esc(menu.description)}</p>`:'';}
-  document.querySelector('#result-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'plato' : 'platos'}`;
-  document.querySelector('#dish-list').innerHTML = filtered.length ? filtered.map(item => `<article class="dish-card" data-layout-key="recipe-${item.id}" data-layout-label="Platillo: ${esc(item.name)}"><div class="dish-art">${item.image?`<img class="recipe-photo" src="${esc(imageURL(item.image))}" alt="${esc(item.name)}" loading="lazy">`:dishArt(item.art)+'<span class="art-caption">Ilustración de muestra</span>'}</div>${favoriteButton(item)}<div class="dish-content"><div class="dish-meta"><span class="eyebrow">${iconMarkup(item.icon)} ${esc(item.category)}</span>${item.verification!=="verified"?'<span class="tag">Muestra</span>':""}</div><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><button class="button secondary" data-recipe="${esc(item.id)}">${esc(item.buttonLabel || "Ver ingredientes")} <span aria-hidden="true">→</span></button></div>${admin?.isAdmin?pencilMarkup("recipes",item.id):""}</article>`).join('') : `<div class="empty-result"><h3>${category === 'Favoritos' ? 'Aquí estarán tus favoritos' : 'No encontramos ese sabor'}</h3><p class="subtle">${category === 'Favoritos' ? 'Toca el corazón de un plato para guardarlo.' : 'Prueba con otro nombre o ingrediente.'}</p><button class="button secondary" data-reset>Ver todos los platos</button></div>`;
+  const count=document.querySelector('#result-count');if(count)count.textContent = `${filtered.length} ${filtered.length === 1 ? 'plato' : 'platos'}`;
+  const dishes=document.querySelector('#dish-list');if(dishes)dishes.innerHTML = filtered.length ? filtered.map(item => `<article class="dish-card" data-layout-key="recipe-${item.id}" data-layout-label="Platillo: ${esc(item.name)}"><div class="dish-art">${item.image?`<img class="recipe-photo" src="${esc(imageURL(item.image))}" alt="${esc(item.name)}" loading="lazy">`:dishArt(item.art)+'<span class="art-caption">Ilustración de muestra</span>'}</div>${favoriteButton(item)}<div class="dish-content"><div class="dish-meta"><span class="eyebrow">${iconMarkup(item.icon)} ${esc(item.category)}</span>${item.verification!=="verified"?'<span class="tag">Muestra</span>':""}</div><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><button class="button secondary" data-recipe="${esc(item.id)}">${esc(item.buttonLabel || "Ver ingredientes")} <span aria-hidden="true">→</span></button></div>${admin?.isAdmin?pencilMarkup("recipes",item.id):""}</article>`).join('') : `<div class="empty-result"><h3>${category === 'Favoritos' ? 'Aquí estarán tus favoritos' : 'No encontramos ese sabor'}</h3><p class="subtle">${category === 'Favoritos' ? 'Toca el corazón de un plato para guardarlo.' : 'Prueba con otro nombre o ingrediente.'}</p><button class="button secondary" data-reset>Ver todos los platos</button></div>`;
   for(const item of filtered)applyImageSizing(document.querySelector(`[data-layout-key="recipe-${item.id}"] .recipe-photo`),item);if(refresh)layout?.refresh();
 }
 function fileInput() { return '<input type="file" id="book-file" accept="application/pdf,.pdf" hidden><p id="book-error" class="error-message" role="alert" hidden></p>'; }
@@ -237,6 +238,9 @@ let resizeTimer; window.addEventListener('resize',() => { clearTimeout(resizeTim
 function updateShell() {
   layout?.beforeRefresh();
   if(!content || !admin)return;
+  // Rebuild the editable shell before applying deletion and placement overrides.
+  // Header children may have been removed or moved into another region.
+  masthead.innerHTML=mastheadTemplate;
   const a=content.appearance;
   for(const [variable,key] of [['--paper','background'],['--ink','text'],['--gold','accent'],['--muted','muted']])if(/^#[a-f\d]{6}$/i.test(a[key]))document.documentElement.style.setProperty(variable,a[key]);
   document.documentElement.style.setProperty('--soft',`color-mix(in srgb, ${a.background} 94%, ${a.text})`);

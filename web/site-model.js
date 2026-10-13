@@ -76,6 +76,7 @@ export function validateSiteDocument(site) {
     if(!/^[a-z0-9:._-]{1,300}$/i.test(key)||!item||typeof item!=='object')throw new Error('El elemento no tiene un identificador válido.');
     if(['color','backgroundColor','borderColor'].some(k=>item[k]&&!/^#[a-f0-9]{6}$/i.test(item[k])))throw new Error('Usa colores hexadecimales de seis dígitos.');
     if(item.size && (!Number.isFinite(item.size)||item.size<10||item.size>100))throw new Error('El tamaño de texto debe estar entre 10 y 100 px.');
+    if(item.locked!==undefined&&typeof item.locked!=='boolean')throw new Error('Revisa el candado del elemento.');
     if(item.centered!==undefined&&typeof item.centered!=='boolean')throw new Error('Revisa el centrado del elemento.');
     if(item.align && !['left','center','right'].includes(item.align))throw new Error('Elige una alineación válida.');
     if(item.icon && !iconNames.includes(item.icon))throw new Error('Elige un icono disponible.');

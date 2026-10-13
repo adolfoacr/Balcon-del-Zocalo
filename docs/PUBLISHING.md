@@ -1,12 +1,12 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=792c505
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=44c7136
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=792c505
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=44c7136
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=792c505
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=44c7136
 
-Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `792c5056b8c711c5989f193dc4fae394a5f4ddeb`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
+Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `44c71365a1507f1e0aa3a0d91c9fbabacdd6f1b1`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
 La edición une los lápices y los paneles con los datos visibles. La cabecera admite texto, imagen o ambos; las imágenes tienen controles de ancho, alto, encuadre y ajuste. Cambiar la imagen de un carrusel reemplaza la diapositiva seleccionada. La carga muestra vista previa y estado, impide aplicar durante la subida y conserva el error dentro del editor.
 
@@ -27,3 +27,6 @@ Para esta corrección pasaron los 15 casos nuevos en las cinco configuraciones d
 
 
 La entrega final 792c505 activa Centrar y Escalar directamente al terminar el toque, igual que los lápices, sin depender del clic que sintetiza el navegador. Pasaron cinco casos adicionales con fotografía real incrustada, arrastre mediante ratón o eventos táctiles, centrado, publicación simulada y recarga. La compilación final y sus comprobaciones npm terminaron correctamente.
+
+
+La entrega 44c7136 añade únicamente el candado de posición junto a cada cruz. El bloqueo captura la ubicación, protege los controles de movimiento, centrado y escala del elemento y sus descendientes, y da prioridad a los elementos bloqueados al resolver colisiones. El estado persiste en el borrador y la publicación. El lápiz sigue disponible. Pasaron diez casos dirigidos de bloqueo, movimiento, restauración, publicación simulada y recarga en las cinco configuraciones de escritorio, móvil, tableta y HTML autocontenido; también cinco pruebas de validación y permisos, sintaxis y compilación.

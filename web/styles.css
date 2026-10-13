@@ -629,3 +629,5 @@ main.content-reflow { min-height:0; }
 .image-resize-anchors [data-resize-corner="ne"]{left:auto;right:0;}
 .image-resize-anchors [data-resize-corner="sw"]{top:auto;bottom:0;}
 .image-resize-anchors [data-resize-corner="se"]{left:auto;top:auto;right:0;bottom:0;}
+.layout-float-tools [data-layout-lock][aria-pressed="true"]{background:var(--gold);color:var(--paper);}
+.layout-float-tools button:disabled{opacity:.35;cursor:not-allowed;}

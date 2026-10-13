@@ -1,10 +1,10 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=3288256
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=c8c4c8d
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=3288256
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=c8c4c8d
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=3288256
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=c8c4c8d
 
 Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `3288256fa737295f432e5bc14d2e7b4802eb7c55`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
@@ -35,3 +35,6 @@ La entrega 44c7136 añade únicamente el candado de posición junto a cada cruz.
 La entrega 3288256 permite superposiciones intencionales sin empujar los módulos y conserva su posición al bloquear. Añade movimiento por cuatro flechas con paso en píxeles, una sola barra de herramientas por elemento seleccionado, duplicación de módulos a otra sección y duplicación de secciones. Los carruseles nuevos usan imagen completa de altura natural y texto lateral, con disposición vertical en móvil. Cada imagen tiene ubicación, texto e información propios; también existe el texto compartido. Los textos pueden posicionarse dentro de su carrusel sin perder el cambio por diapositiva. Menús y secciones incorpora Centrar navegación; las filas de cinco accesos quedan centradas cuando caben.
 
 Pasaron 15 casos dirigidos de carruseles, diálogos, superposición, bloqueo, flechas, duplicación y recarga en cinco configuraciones. Después pasaron doce comprobaciones con los últimos ajustes en tableta y HTML autocontenido de escritorio y móvil, dos casos de navegación centrada y copia de carruseles en escritorio y móvil, y dos casos de textos individuales agrupados con su carrusel en tableta y escritorio. Pasaron doce regresiones de lápices en las cuatro secciones, sustitución de fotografías, restauración y ciclo del carrusel; seis pruebas de validación y permisos y siete tamaños de pantalla (320–1366 px). Las subidas, sesiones y publicaciones de contenido se simulan; no se cambian cuentas, correos ni contenido de producción. Estas pruebas usan Chromium y no equivalen a un iPad físico.
+
+
+Entrega c8c4c8d: carga, sustitución y retirada del PDF exclusivas para administradores; los visitantes conservan la apertura del libro publicado y los controles de lectura. Las acciones también comprueban permisos aunque se intente activar un control añadido al DOM. La apertura pública usa el PDF configurado en el documento publicado, sin habilitar la selección de otro archivo. Se corrigió la apertura del lector sin botón de carga y se preservó el funcionamiento de los botones del lector para administradores fuera del modo de edición de elementos. Pasaron catorce casos dirigidos de lectura, sustitución, retirada, permisos, sesiones y PDF público en escritorio, móvil y tableta, seis pruebas de validación y seguridad, sintaxis y compilación npm. Las cuentas y los archivos de estas pruebas son simulados.

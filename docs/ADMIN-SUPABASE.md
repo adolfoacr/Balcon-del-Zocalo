@@ -53,3 +53,6 @@ La posición libre admite superposiciones intencionales y deja de empujar autom�
 «Duplicar» (⧉) crea una copia del módulo en la sección elegida, con sus imágenes, textos y diseño. «Duplicar sección» añade una copia a la navegación. Las copias de plantillas visuales no incluyen formularios, participaciones privadas, controles de administración ni texto del PDF local; conservan fotografías, fichas y carruseles. Se pueden editar y colocar por separado. Los carruseles y banners creados con Agregar conservan sus estructuras de datos propias en la copia.
 
 Menús y secciones → «Centrar navegación» devuelve los accesos a su fila y centra el conjunto. Las filas con cinco o más accesos también se centran cuando caben; en móvil conservan el desplazamiento horizontal para llegar a todos los menús.
+
+
+Solo los administradores pueden cargar, cambiar o retirar un PDF del lector. Para compartir el libro con todos, usa Nuestro libro → Editar espacio del libro → PDF publicado, aplica el borrador y pulsa Publicar. Los visitantes anónimos y registrados pueden abrir el libro publicado, pasar páginas, ajustar el tamaño y usar la lectura inmersiva; no reciben botones ni entrada de archivos para reemplazarlo. Las acciones locales también comprueban el rol, y las cargas públicas conservan las políticas de administrador de Supabase.

@@ -19,6 +19,9 @@ const documentTasks = new WeakMap();
 let detailOpener;
 let disposeCarousels = () => {};
 
+// Sections without a chosen icon get a default one; CSS shows it only in the mobile tab bar.
+const defaultNavIcons = {noticias:'news',recetario:'utensils',libro:'book',comparte:'sparkles'};
+const navIcon = item => item.icon && item.icon!=='none' ? iconMarkup(item.icon) : item.image ? '' : iconMarkup(defaultNavIcons[item.id]||'sparkles','inline-icon auto-icon');
 const normalize = value => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 const safeSource = item => item.sourceURL?.startsWith('https://') ? `<a href="${esc(item.sourceURL)}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>` : '';
 function dishArt(kind) {
@@ -82,6 +85,7 @@ function route() {
   for (const link of document.querySelectorAll('[data-nav]')) {
     if (link.dataset.nav === tab) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
   }
+  document.body.dataset.tab = tab;
   document.title = `${tab === 'recetario' ? 'Recetario' : tab === 'libro' ? 'Nuestro libro' : tab==='comparte'?'Comparte tu trabajo':tab==='admin'?'Administración':'Noticias'} · ${content.restaurantName}`;
   if (tab==='admin') main.innerHTML=admin.adminMarkup();
   else if(['cuenta','registro','recuperar','nueva-clave'].includes(tab)) main.innerHTML=admin.accountMarkup(tab);
@@ -265,7 +269,7 @@ function updateShell() {
   document.querySelector('.location-label').innerHTML=esc(content.brand.location)+'<br><span>'+esc(content.brand.subtitle)+'</span>';
   document.querySelector('.edition').innerHTML=(content.brand.badge?`<span class="pilot-label">${esc(content.brand.badge)}</span>`:'')+`<div class="account-tools">${admin.accountTools()}</div>`;
   const nav=document.querySelector('.navigation'),items=content.navigation.filter(item=>item.visible);
-  nav.classList.toggle('many-menus',items.length>4);nav.classList.toggle('four-menus',items.length===4);nav.hidden=items.length===0;nav.innerHTML=items.map(item=>`<a href="#${esc(item.id)}" data-nav="${esc(item.id)}">${item.image?`<img class="nav-photo" src="${esc(imageURL(item.image))}" alt="">`:""}${iconMarkup(item.icon)}<span>${esc(item.label)}</span></a>`).join('');
+  nav.classList.toggle('many-menus',items.length>4);nav.classList.toggle('four-menus',items.length===4);nav.hidden=items.length===0;nav.innerHTML=items.map(item=>`<a href="#${esc(item.id)}" data-nav="${esc(item.id)}">${item.image?`<img class="nav-photo" src="${esc(imageURL(item.image))}" alt="">`:""}${navIcon(item)}<span>${esc(item.label)}</span></a>`).join('');
   document.querySelector('.footer').hidden=false;document.querySelector('.footer').innerHTML=`<span>${esc(content.restaurantName)}</span><span>${esc(content.brand.footer)}</span><span class="footer-edition">${esc(content.brand.subtitle)}</span>`;
   renderLocation();
   const bar=document.querySelector('#editor-tools');bar.hidden=!admin.isAdmin;bar.innerHTML=admin.toolsMarkup();

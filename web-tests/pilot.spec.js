@@ -26,17 +26,17 @@ async function uploadPDF(page) {
 test('navigation, editorial detail, and responsive layout', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name:'El origen de lo que sigue.' })).toBeVisible();
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 28, 27)');
+  await expect(page.getByRole('heading', { name:'La cocina también se investiga.' })).toBeVisible();
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(22, 23, 22)');
   await expect(page.getByRole('link', { name:'Inicio', exact:true })).toHaveAttribute('aria-current','page');
   await page.getByRole('link', { name:'Noticias', exact:true }).click();
   await expect(page.getByRole('heading', { name:'Noticias y hallazgos' })).toBeVisible();
-  await page.getByRole('button', { name:/Del ingrediente a la investigación/ }).click();
-  await expect(page.getByRole('dialog')).toContainText('Texto editorial de demostración');
+  await page.getByRole('button', { name:/Del ingrediente al proceso/ }).click();
+  await expect(page.getByRole('dialog')).toContainText('Contenido de muestra');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await page.getByRole('link', { name:'Inicio', exact:true }).click();
-  await page.getByRole('link', { name:/Explorar el recetario/ }).click();
+  await page.getByRole('link', { name:/Ver recetario/ }).click();
   await expect(page.getByRole('link', { name:'Recetario', exact:true })).toHaveAttribute('aria-current','page');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path:`test-results/${info.project.name}-recetario.png`, fullPage:true });
@@ -77,7 +77,7 @@ test('favorites survive reload and can be removed from detail', async ({ page })
 
 test('book is empty and rejects invalid or oversized files', async ({ page }) => {
   await page.goto('/#libro');
-  await expect(page.getByRole('heading',{ name:'Un lugar para cada página.' })).toBeVisible();
+  await expect(page.getByRole('heading',{ name:'Un lugar para conservar lo aprendido.' })).toBeVisible();
   await page.locator('#book-file').setInputFiles({ name:'incorrecto.pdf', mimeType:'application/pdf', buffer:Buffer.from('Not a PDF') });
   await expect(page.getByRole('alert')).toContainText('No pudimos abrir');
   await page.locator('#book-file').setInputFiles({ name:'grande.pdf', mimeType:'application/pdf', buffer:Buffer.alloc(30 * 1024 * 1024 + 1) });
@@ -113,7 +113,7 @@ test('PDF renders both pages, persists locally, and removal requires confirmatio
   await expect(page.locator('#pdf-canvas')).toBeVisible();
   await page.getByRole('button',{ name:'Retirar libro',exact:true }).click();
   await page.getByRole('dialog').getByRole('button',{ name:'Retirar libro',exact:true }).click();
-  await expect(page.getByRole('heading',{ name:'Un lugar para cada página.' })).toBeVisible();
+  await expect(page.getByRole('heading',{ name:'Un lugar para conservar lo aprendido.' })).toBeVisible();
   await page.reload();
   await expect(page.locator('#pdf-canvas')).toHaveCount(0);
   expect(errors).toEqual([]);

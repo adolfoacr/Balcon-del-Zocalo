@@ -6,7 +6,7 @@ test('the delivered HTML loads its design and interactions without companion fil
   // with every other HTTP resource denied, rather than relaxing that policy.
   const requests = await standaloneOnly(page);
   await page.goto('/');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 28, 27)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(22, 23, 22)');
   await page.getByRole('link',{ name:'Recetario', exact:true }).click();
   await expect(page.locator('.dish-card')).toHaveCount(2);
   await page.getByRole('searchbox').fill('MAIZ');
@@ -15,7 +15,7 @@ test('the delivered HTML loads its design and interactions without companion fil
   await expect(page.getByRole('dialog')).toContainText('Maíz azul');
   await page.keyboard.press('Escape');
   await page.getByRole('link',{ name:'Nuestro libro', exact:true }).click();
-  await expect(page.getByRole('heading',{ name:'Un lugar para cada página.' })).toBeVisible();
+  await expect(page.getByRole('heading',{ name:'Un lugar para conservar lo aprendido.' })).toBeVisible();
   await page.screenshot({ path:`test-results/${info.project.name}-archivo.png`, fullPage:true });
   expect(requests).toEqual([]);
 });
@@ -25,8 +25,8 @@ test('a viewer without scripts still displays styled content instead of a loadin
   const page = await context.newPage();
   const requests = await standaloneOnly(page);
   await page.goto('http://127.0.0.1:4173/');
-  await expect(page.getByRole('heading',{ name:'El origen de lo que sigue.' })).toBeVisible();
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 28, 27)');
+  await expect(page.getByRole('heading',{ name:'Sabores por descubrir.' })).toBeVisible();
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(22, 23, 22)');
   await page.getByRole('link',{ name:'Recetario', exact:true }).click();
   await expect(page.getByRole('heading',{ name:'Fideo seco con chicharrón de filete' })).toBeVisible();
   await expect(page.getByText('Preparando tu experiencia…')).toHaveCount(0);

@@ -21,6 +21,8 @@ test('the cover photographs advance every three seconds and loop', async ({page}
     await expect(carousel.locator('[data-carousel-slide]:not([hidden])')).toHaveCount(1);
   }
   await page.clock.runFor(3000);
+  for (const carousel of [hero(page)]) await expect(carousel).toHaveAttribute('data-active-slide','2');
+  await page.clock.runFor(3000);
   for (const carousel of [hero(page)]) await expect(carousel).toHaveAttribute('data-active-slide','0');
 });
 

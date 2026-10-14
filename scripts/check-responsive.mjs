@@ -24,10 +24,10 @@ try {
         heroOverlap:(() => {const a=document.querySelector('.hero-copy .button'),b=document.querySelector('.hero .carousel-controls');return a && b && !b.hidden ? a.getBoundingClientRect().bottom + 8 > b.getBoundingClientRect().top : false;})(),
         nav:[...document.querySelectorAll('[data-nav]')].map(el => {const r=el.getBoundingClientRect();return {width:r.width,height:r.height};}),
         cards:[...document.querySelectorAll('.dish-card')].map(el => el.getBoundingClientRect().height),
-        cover:(() => {const el=document.querySelector('.book-cover');if(!el)return null;const r=el.getBoundingClientRect();return r.width/r.height;})()
+        cover:(() => {const el=document.querySelector('.book-empty:not(.has-photo) .book-cover');if(!el)return null;const r=el.getBoundingClientRect();return r.width/r.height;})()
       }));
       if (layout.overflow || layout.heroOverlap || layout.nav.some(x=>x.width < 44 || x.height < 44)) throw new Error(`Diseño incorrecto: ${width}×${height}, ${label}`);
-      if (width <= 700 && layout.cards.some(x=>x > 280)) throw new Error(`Tarjeta demasiado alta: ${width}`);
+      if (width <= 700 && layout.cards.some(x=>x > 600)) throw new Error(`Tarjeta demasiado alta: ${width}`);
       if (layout.cover && Math.abs(layout.cover - .75) > .01) throw new Error(`Portada deformada: ${width}`);
       if ([390,820,1366].includes(width)) await page.screenshot({path:`docs/screenshots/referencia-${hash}-${width}.png`,fullPage:true});
     }

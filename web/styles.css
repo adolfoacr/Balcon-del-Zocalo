@@ -816,3 +816,16 @@ main{overflow-x:clip;}
 }
 /* Edit tools stay reachable above the mobile tab bar. */
 #layout-edit-layer { z-index:45; }
+
+/* Polish: focus inside the tab bar, printing and reduced motion. */
+.navigation a:focus-visible { outline-offset:-4px; }
+@media print {
+  .scroll-reveal { opacity:1 !important; transform:none !important; }
+  .navigation,.editor-tools,#layout-edit-layer,.toast { display:none !important; }
+  body { padding-bottom:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  .route-enter,.scroll-reveal { animation:none; transition:none; }
+  .scroll-reveal { opacity:1; transform:none; }
+}

@@ -779,3 +779,40 @@ main{overflow-x:clip;}
 }
 /* Immersive reading hides the tab bar whatever its menu count. */
 .reader-focus .navigation,.reader-focus .navigation.four-menus,.reader-focus .navigation.many-menus { display:none; }
+
+/* Administration on touch screens: a compact sticky toolbar instead of a wall of buttons. */
+@media (min-width:701px) and (max-width:1100px) {
+  /* Pencil sits beside the title without moving it from its visitor position. */
+  .masthead > .location-label { grid-column:1; grid-row:1; }
+  .masthead > .brand { grid-column:2; grid-row:1; }
+  .masthead > .edition { grid-column:3; grid-row:1; }
+  #brand-edit { grid-column:2; grid-row:1; justify-self:end; align-self:center; transform:translateX(calc(100% + 8px)); }
+  #brand-edit .edit-pencil { position:static; }
+}
+@media (max-width:1100px) {
+  .section-admin-toolbar { gap:8px; }
+}
+@media (max-width:700px) {
+  .is-admin .masthead { flex-wrap:wrap; }
+  #brand-edit { order:2; }
+  #brand-edit .edit-pencil { position:static; }
+  .is-admin .edition { order:3; flex:1 1 100%; justify-content:flex-end; }
+  .editor-tools { position:sticky; top:0; z-index:20; flex-wrap:nowrap; justify-content:flex-start; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; padding:8px 12px; gap:8px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .editor-tools::-webkit-scrollbar { display:none; }
+  .editor-tools > * { flex:0 0 auto; scroll-snap-align:start; white-space:nowrap; }
+  .editor-tools > [data-cms-publish] { order:-2; }
+  .editor-tools > span:not(.visual-edit-help) { order:-1; width:auto; font-size:12px; }
+  .editor-tools > .visual-edit-help { width:auto; white-space:normal; min-width:260px; text-align:left; order:0; }
+  .editor-tools .button,.section-admin-toolbar .button { font-size:12px; padding:8px 14px; }
+  .section-admin-toolbar { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+  .section-admin-toolbar::-webkit-scrollbar { display:none; }
+  .section-admin-toolbar > *,.section-admin-toolbar .panel-actions { flex:0 0 auto; white-space:nowrap; }
+  .section-admin-toolbar .panel-actions { display:flex; gap:8px; margin:0; }
+  /* The notice appears at the top so it never hides reader controls or the tab bar. */
+  .toast { top:calc(env(safe-area-inset-top) + 12px); bottom:auto; max-width:calc(100% - 32px); }
+  .reader-ribbon { padding:8px 0 14px; }
+  .reader-top { padding-top:16px; }
+  .book-reading-shell { padding-top:20px; }
+}
+/* Edit tools stay reachable above the mobile tab bar. */
+#layout-edit-layer { z-index:45; }

@@ -945,6 +945,9 @@ dialog { border-radius:8px; border-color:var(--edge); }
 @media (min-width:1200px) {
   .masthead { max-width:none; margin:0; height:76px; padding:0 40px; grid-template-columns:auto 1fr auto; gap:24px; position:sticky; top:0; z-index:15; background:var(--paper); border-bottom:1px solid var(--line); }
   .masthead .location-label { display:none; }
+  /* While editing, the header label is shown in flow and the menu makes room for it. */
+  body.visual-editing .masthead .location-label { display:block; }
+  body.visual-editing .navigation,body.visual-editing .navigation.four-menus,body.visual-editing .navigation.many-menus { margin-left:450px; }
   .masthead .brand { justify-self:start; min-height:76px; }
   .masthead .brand img { width:auto; max-height:46px; }
   .masthead .brand-title { font-size:19px; line-height:1.15; letter-spacing:.06em; text-align:left; max-width:240px; }
@@ -1038,6 +1041,8 @@ dialog { border-radius:8px; border-color:var(--edge); }
 .book-status > div { padding:20px 22px; border:1px solid var(--edge); border-radius:var(--radius); background:var(--card); }
 @media (max-width:1100px) { .work-types-grid,.book-highlights-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:700px) { .work-types-grid,.book-highlights-grid { grid-template-columns:1fr; } .book-highlight { min-height:0; } .book-status > div { grid-template-columns:115px minmax(0,1fr); } }
+/* The "Más" menu must stay above the floating edit tools while it is open. */
+.editor-tools:has(.editor-more[open]) { z-index:60; }
 </style>
 
 </head>

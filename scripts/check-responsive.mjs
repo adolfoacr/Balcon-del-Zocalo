@@ -16,7 +16,7 @@ try {
       else { extraResources.push(route.request().url()); await route.abort(); }
     });
     await page.goto('http://127.0.0.1:4173/', {waitUntil:'networkidle'});
-    for (const [label,hash] of [['Noticias','noticias'],['Recetario','recetario'],['Nuestro libro','libro'],['Comparte tu trabajo','comparte']]) {
+    for (const [label,hash] of [['Inicio','noticias'],['Recetario','recetario'],['Nuestro libro','libro'],['Comparte tu trabajo','comparte'],['Noticias','novedades']]) {
       await page.getByRole('link', {name:label,exact:true}).click();
       await page.waitForFunction(hash=>document.querySelector(`[data-nav="${hash}"]`)?.getAttribute('aria-current')==='page',hash);
       const layout = await page.evaluate(() => ({
@@ -32,7 +32,7 @@ try {
       if ([390,820,1366].includes(width)) await page.screenshot({path:`docs/screenshots/referencia-${hash}-${width}.png`,fullPage:true});
     }
     if (errors.length || extraResources.length) throw new Error(JSON.stringify({errors,extraResources}));
-    console.log(`Correcto: ${width}×${height}, 4 secciones, sin desbordamientos ni archivos auxiliares.`);
+    console.log(`Correcto: ${width}×${height}, 5 secciones, sin desbordamientos ni archivos auxiliares.`);
     await page.close();
   }
 } finally { await browser.close(); }

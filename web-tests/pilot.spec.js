@@ -28,11 +28,14 @@ test('navigation, editorial detail, and responsive layout', async ({ page }, inf
   await page.goto('/');
   await expect(page.getByRole('heading', { name:'El origen de lo que sigue.' })).toBeVisible();
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 28, 27)');
-  await expect(page.getByRole('link', { name:'Noticias', exact:true })).toHaveAttribute('aria-current','page');
+  await expect(page.getByRole('link', { name:'Inicio', exact:true })).toHaveAttribute('aria-current','page');
+  await page.getByRole('link', { name:'Noticias', exact:true }).click();
+  await expect(page.getByRole('heading', { name:'Noticias y hallazgos' })).toBeVisible();
   await page.getByRole('button', { name:/Del ingrediente a la investigación/ }).click();
   await expect(page.getByRole('dialog')).toContainText('Texto editorial de demostración');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();
+  await page.getByRole('link', { name:'Inicio', exact:true }).click();
   await page.getByRole('link', { name:/Explorar el recetario/ }).click();
   await expect(page.getByRole('link', { name:'Recetario', exact:true })).toHaveAttribute('aria-current','page');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

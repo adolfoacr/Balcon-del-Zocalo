@@ -854,3 +854,22 @@ body:not(.visual-editing) #layout-edit-layer { display:none !important; }
   .editor-tools > .visual-edit-help { order:5; flex:1 1 100%; min-width:0; text-align:center; }
   .editor-more-menu { position:fixed; left:12px; right:12px; top:auto; bottom:calc(var(--tabbar-h) + 12px); z-index:60; }
 }
+
+/* Contextual tool bar: four labelled actions, the rest behind "Más". */
+.layout-float-tools { flex-wrap:wrap; align-items:center; max-width:min(382px,calc(100vw - 8px)); padding:2px; }
+.layout-float-tools .tool-primary { width:auto; min-width:44px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:0 9px; font-size:13px; letter-spacing:0; }
+.layout-float-tools .tool-primary svg { width:18px; height:18px; }
+.layout-float-tools .tool-more { font-size:20px; padding:0 8px; }
+.layout-float-tools .tool-advanced { display:none; flex:1 1 100%; justify-content:space-around; border-top:1px solid var(--line); margin-top:2px; padding-top:2px; }
+.layout-float-tools.is-open .tool-advanced { display:flex; }
+
+/* Edit form: side panel on large screens, bottom sheet on phones; the page stays visible. */
+.cms-drawer { position:fixed; margin:0 0 0 auto; top:0; right:0; height:100dvh; max-height:100dvh; width:min(440px,100%); padding:28px 24px 0; border-radius:0; border-width:0 0 0 1px; }
+.cms-drawer::backdrop { background:#0a0e0b66; }
+.drawer-actions { bottom:0; padding:14px 0 max(14px,env(safe-area-inset-bottom)); }
+.cms-field input[type=file]::file-selector-button { margin-right:12px; padding:9px 16px; min-height:40px; border:1px solid var(--gold); border-radius:24px; background:transparent; color:var(--gold); font:inherit; font-size:13px; cursor:pointer; }
+@media (max-width:700px) {
+  .cms-drawer { top:auto; bottom:0; left:0; right:0; margin:0; width:100%; height:auto; max-height:88dvh; padding:22px 18px 0; border-radius:16px 16px 0 0; border-width:1px 0 0; }
+  .cms-drawer::before { content:''; display:block; width:44px; height:4px; border-radius:2px; background:var(--line); margin:-8px auto 14px; }
+  .drawer-actions { bottom:0; }
+}

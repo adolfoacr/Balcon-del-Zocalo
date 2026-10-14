@@ -243,8 +243,8 @@ window.addEventListener('hashchange',() => { detail.close(); route(); main.focus
 document.querySelector('.skip-link').addEventListener('click', event => { event.preventDefault(); main.focus(); main.scrollIntoView(); });
 detail.addEventListener('close',() => { if (detailOpener && !detailOpener.isConnected) document.querySelector('[data-category][aria-pressed="true"]')?.focus({ preventScroll:true }); });
 let swipeStart;
-document.addEventListener('pointerdown',event=>{if(event.pointerType==='touch'&&event.target.closest('.pdf-stage')&&readerZoom===1)swipeStart={x:event.clientX,y:event.clientY};});
-document.addEventListener('pointerup',event=>{if(!swipeStart||!book)return;const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.8){if(dx<0&&currentPage<book.numPages)currentPage++;else if(dx>0&&currentPage>1)currentPage--;else return;void renderPage();}});
+document.addEventListener('pointerdown',event=>{if(['touch','pen','mouse'].includes(event.pointerType)&&event.target.closest('.pdf-stage')&&event.button===0&&readerZoom===1){swipeStart={x:event.clientX,y:event.clientY,id:event.pointerId};event.target.closest('.pdf-stage').setPointerCapture(event.pointerId);}});
+document.addEventListener('pointerup',event=>{if(!swipeStart||!book||swipeStart.id!==event.pointerId)return;const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.8){if(dx<0&&currentPage<book.numPages)currentPage++;else if(dx>0&&currentPage>1)currentPage--;else return;void renderPage();}});
 document.addEventListener('pointercancel',()=>{swipeStart=null;});
 let resizeTimer; window.addEventListener('resize',() => { clearTimeout(resizeTimer); if (location.hash === '#libro' && book) resizeTimer = setTimeout(() => void renderPage(),150); });
 
@@ -294,7 +294,7 @@ try {
   const service=new SiteService(config);
   work=createWork({service,notify:toast});
   layout=createLayout({getSite:()=>content,getAdmin:()=>admin,notify:toast,onLayoutChange(){if(uiReady)route();}});
-  admin=createAdmin({service,work,initialSite:content,onPreview(site){validateSiteDocument(site);const added=site.recipes.find(item=>JSON.stringify(item)!==JSON.stringify(content.recipes.find(previous=>previous.id===item.id)));if(added){category='Todos';query='';if(recipeMenu&&!(added.menuIds||[]).includes(recipeMenu))recipeMenu='';}content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
+  admin=createAdmin({service,work,initialSite:content,onCompact:(next,action)=>layout.compact(next,action),onPreview(site){validateSiteDocument(site);const added=site.recipes.find(item=>JSON.stringify(item)!==JSON.stringify(content.recipes.find(previous=>previous.id===item.id)));if(added){category='Todos';query='';if(recipeMenu&&!(added.menuIds||[]).includes(recipeMenu))recipeMenu='';}content=site;updateShell();if(uiReady)route();},onAccountChange(){updateShell();if(uiReady && ['admin','cuenta','registro','recuperar','nueva-clave'].includes(location.hash.slice(1)))route();},notify:toast});
   await admin.initialize();uiReady=true;updateShell();
   try { const stored = JSON.parse(localStorage.getItem(favoritesKey) || '[]'); if (Array.isArray(stored)) favorites = new Set(stored.filter(id => content.recipes.some(x => x.id === id))); } catch { /* Storage is optional. */ }
   route();

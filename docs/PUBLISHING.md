@@ -1,10 +1,10 @@
 # Piloto de I+D y trabajo del chef Checo
 
-Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=c8c4c8d
+Sitio: https://adolfoacr.github.io/Balcon-del-Zocalo/?v=420ff28
 
-Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=c8c4c8d
+Actualización desde Safari/iPad: https://adolfoacr.github.io/Balcon-del-Zocalo/actualizar.html?v=420ff28
 
-Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=c8c4c8d
+Configuración inicial: https://adolfoacr.github.io/Balcon-del-Zocalo/activar.html?v=420ff28
 
 Pages publica la rama `gh-pages`, carpeta `/`. Commit de esta entrega: `3288256fa737295f432e5bc14d2e7b4802eb7c55`. Se conservan el checkout original y los archivos Swift. La entrega incluye index.html autocontenido, activar.html, actualizar.html, los dos SQL y .nojekyll.
 
@@ -38,3 +38,6 @@ Pasaron 15 casos dirigidos de carruseles, diálogos, superposición, bloqueo, fl
 
 
 Entrega c8c4c8d: carga, sustitución y retirada del PDF exclusivas para administradores; los visitantes conservan la apertura del libro publicado y los controles de lectura. Las acciones también comprueban permisos aunque se intente activar un control añadido al DOM. La apertura pública usa el PDF configurado en el documento publicado, sin habilitar la selección de otro archivo. Se corrigió la apertura del lector sin botón de carga y se preservó el funcionamiento de los botones del lector para administradores fuera del modo de edición de elementos. Pasaron catorce casos dirigidos de lectura, sustitución, retirada, permisos, sesiones y PDF público en escritorio, móvil y tableta, seis pruebas de validación y seguridad, sintaxis y compilación npm. Las cuentas y los archivos de estas pruebas son simulados.
+
+
+Entrega 420ff28: marcos dibujables desde Agregar, anclajes para escalar el módulo entero y dimensiones numéricas; ubicación izquierda/centro/derecha en banners y diapositivas; plantillas vacía, editorial, galería e I+D; compactación de espacios de posiciones libres al eliminar y mediante Ajustar espacios, respetando candados; deslizamiento horizontal de páginas PDF con dedo, lápiz o ratón. Los marcos nuevos permanecen en el flujo normal. Se oculta el lápiz redundante de los módulos mientras su barra visual está disponible, y ese lápiz abre el formulario completo del bloque. Se incluye docs/CLAUDE-CODE.md para continuar el desarrollo. Pasaron quince casos dirigidos nuevos en tableta y HTML autocontenido de escritorio/móvil, seis regresiones de lápices y permisos del PDF, seis comprobaciones de seguridad y siete tamaños de pantalla. La compilación npm terminó. Las pruebas táctiles usan Chromium simulado, no Safari físico; las publicaciones de contenido y cuentas se simulan.

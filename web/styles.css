@@ -273,9 +273,9 @@ dialog li { margin:8px 0; }
 .editable-block { position:relative; }
 .edit-pencil { position:absolute; top:10px; right:10px; z-index:3; width:44px; height:44px; display:grid; place-items:center; border:1px solid var(--gold); border-radius:50%; background:var(--paper); color:var(--gold); }
 .edit-pencil svg { width:20px; height:20px; }
-.is-admin .intro { padding-right:56px; }
-.is-admin .section-heading { padding-right:54px; }
-.is-admin .dish-card .edit-pencil { top:66px; }
+.visual-editing .intro { padding-right:56px; }
+.visual-editing .section-heading { padding-right:54px; }
+.visual-editing .dish-card .edit-pencil { top:66px; }
 .editor-tools { background:var(--soft); border-bottom:1px solid #796441; padding:12px 24px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
 .editor-tools > span { font-size:12px; color:var(--gold); }
 .editor-tools .button { min-height:44px; padding:8px 16px; }
@@ -828,4 +828,48 @@ main{overflow-x:clip;}
   html { scroll-behavior:auto; }
   .route-enter,.scroll-reveal { animation:none; transition:none; }
   .scroll-reveal { opacity:1; transform:none; }
+}
+
+/* Clean administrator view: controls appear only while editing. */
+body:not(.visual-editing) .edit-pencil,
+body:not(.visual-editing) #brand-edit,
+body:not(.visual-editing) .section-admin-toolbar,
+body:not(.visual-editing) #layout-edit-layer { display:none !important; }
+.editor-tools { padding:8px 16px; gap:10px; justify-content:center; }
+.editor-tools .editor-status { font-size:12px; color:var(--muted); }
+.editor-tools .editor-toggle[aria-pressed="true"] { background:var(--paper); color:var(--gold); border-color:var(--gold); }
+.editor-more { position:relative; }
+.editor-more > summary { list-style:none; cursor:pointer; min-height:44px; display:inline-flex; align-items:center; padding:8px 18px; }
+.editor-more > summary::-webkit-details-marker { display:none; }
+.editor-more > summary::after { content:'▾'; margin-left:8px; font-size:11px; }
+.editor-more[open] > summary::after { content:'▴'; }
+.editor-more-menu { position:absolute; right:0; top:calc(100% + 8px); z-index:60; display:grid; gap:8px; min-width:250px; padding:12px; background:var(--paper); border:1px solid var(--gold); border-radius:8px; box-shadow:0 8px 28px #0009; }
+.editor-more-menu .button { width:100%; justify-content:flex-start; }
+@media (max-width:700px) {
+  .editor-tools { overflow:visible; flex-wrap:wrap; justify-content:space-between; padding:8px 12px; gap:8px; scroll-snap-type:none; }
+  .editor-tools > * { flex:0 0 auto; }
+  .editor-tools > .editor-status { display:none; }
+  .editor-tools > [data-cms-publish] { order:0; }
+  .editor-tools .button,.editor-more > summary { font-size:12px; padding:8px 12px; }
+  .editor-tools > .visual-edit-help { order:5; flex:1 1 100%; min-width:0; text-align:center; }
+  .editor-more-menu { position:fixed; left:12px; right:12px; top:auto; bottom:calc(var(--tabbar-h) + 12px); z-index:60; }
+}
+
+/* Contextual tool bar: four labelled actions, the rest behind "Más". */
+.layout-float-tools { flex-wrap:wrap; align-items:center; max-width:min(382px,calc(100vw - 8px)); padding:2px; }
+.layout-float-tools .tool-primary { width:auto; min-width:44px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:0 9px; font-size:13px; letter-spacing:0; }
+.layout-float-tools .tool-primary svg { width:18px; height:18px; }
+.layout-float-tools .tool-more { font-size:20px; padding:0 8px; }
+.layout-float-tools .tool-advanced { display:none; flex:1 1 100%; justify-content:space-around; border-top:1px solid var(--line); margin-top:2px; padding-top:2px; }
+.layout-float-tools.is-open .tool-advanced { display:flex; }
+
+/* Edit form: side panel on large screens, bottom sheet on phones; the page stays visible. */
+.cms-drawer { position:fixed; margin:0 0 0 auto; top:0; right:0; height:100dvh; max-height:100dvh; width:min(440px,100%); padding:28px 24px 0; border-radius:0; border-width:0 0 0 1px; }
+.cms-drawer::backdrop { background:#0a0e0b66; }
+.drawer-actions { bottom:0; padding:14px 0 max(14px,env(safe-area-inset-bottom)); }
+.cms-field input[type=file]::file-selector-button { margin-right:12px; padding:9px 16px; min-height:40px; border:1px solid var(--gold); border-radius:24px; background:transparent; color:var(--gold); font:inherit; font-size:13px; cursor:pointer; }
+@media (max-width:700px) {
+  .cms-drawer { top:auto; bottom:0; left:0; right:0; margin:0; width:100%; height:auto; max-height:88dvh; padding:22px 18px 0; border-radius:16px 16px 0 0; border-width:1px 0 0; }
+  .cms-drawer::before { content:''; display:block; width:44px; height:4px; border-radius:2px; background:var(--line); margin:-8px auto 14px; }
+  .drawer-actions { bottom:0; }
 }

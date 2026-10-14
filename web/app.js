@@ -316,3 +316,6 @@ try {
 
 }
 void initialize();
+
+document.addEventListener('click',event=>{for(const menu of document.querySelectorAll('.editor-more[open]'))if(!menu.contains(event.target))menu.open=false;});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')for(const menu of document.querySelectorAll('.editor-more[open]'))menu.open=false;});

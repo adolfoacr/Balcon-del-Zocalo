@@ -897,33 +897,37 @@ body:not(.visual-editing) #layout-edit-layer { display:none !important; }
 .dish-art:has(.recipe-photo),.news-image { width:100% !important; }
 .dish-art { width:100% !important; }
 
-/* ===== Visual theme: editorial dark (serif titles, one-row header, soft cards) =====
-   Appearance only: no content, routes or editing behaviour change here. */
-@font-face { font-family:'Cormorant Garamond'; font-style:normal; font-weight:300 700; font-display:swap; src:url('/assets/cormorant-latin.woff2') format('woff2'); }
-:root { --display:'Cormorant Garamond',Georgia,'Times New Roman',serif; --radius:10px; --edge:#3a3933; --card:linear-gradient(180deg,#252521 0%,#1f1f1c 100%); }
-h1,h2,h3 { font-family:var(--display); font-weight:500; letter-spacing:-.005em; }
-h1 { font-size:clamp(42px,5.6vw,76px); line-height:1.04; }
-h2 { font-size:42px; line-height:1.08; }
-h3 { font-size:30px; line-height:1.12; }
-.brand-title { font-family:var(--sans); }
-.button { border-radius:8px; letter-spacing:.06em; }
+/* ===== Visual theme: dark editorial (appearance only; no content or behaviour changes) ===== */
+:root { --radius:4px; --edge:#34332e; --card:#171715; }
+h1,h2,h3 { font-weight:400; letter-spacing:-.02em; }
+h1 { font-size:clamp(40px,5vw,68px); line-height:1.06; }
+h2 { font-size:38px; line-height:1.1; }
+h3 { font-size:26px; line-height:1.15; }
+.eyebrow { letter-spacing:.2em; }
+.button { border-radius:999px; letter-spacing:.04em; padding:12px 28px; }
+.button.secondary { border-color:#7a6a48; }
 .hero .button { min-width:0; padding:13px 30px; }
 .intro { text-align:left; margin:0; max-width:none; padding:56px 0 26px; }
 .intro p { margin-left:0; max-width:640px; }
 .hero { border-radius:var(--radius); min-height:540px; }
 .hero::before { background:linear-gradient(90deg,#0b0d0bdb 0%,#0b0d0b8f 42%,#0b0d0b2e 78%,#0b0d0b59 100%); }
-.hero h1 { font-size:clamp(44px,6vw,84px); }
+.hero h1 { font-size:clamp(44px,6vw,80px); }
 .news-card,.dish-card,.custom-block,.shortcut-card,.lab-work-card,.work-card,.work-form-panel,.work-signin,.account-card,.lab-gallery,.book-empty,.admin-shell,.cms-row,.location-section .map-stage { border-radius:var(--radius); border-color:var(--edge); }
 .news-card,.dish-card,.shortcut-card,.custom-block,.lab-work-card { background:var(--card); }
-.news-card h3,.dish-content h3,.lab-card-content h3 { font-size:30px; line-height:1.12; }
+.news-card h3,.dish-content h3,.lab-card-content h3 { font-size:28px; line-height:1.14; }
 .dish-content h3 { min-height:0; }
 .dish-content .button { width:100%; }
-.search-label { border-radius:8px; }
-dialog { border-radius:12px; border-color:var(--edge); }
+.search-label { border-radius:6px; }
+dialog { border-radius:8px; border-color:var(--edge); }
+/* Home shortcuts: icon in a circle, gold capitals, as in the reference. */
 .shortcut-card { min-height:96px; padding:20px 22px; gap:18px; }
 .shortcut-card > svg:first-child { width:24px; height:24px; padding:14px; border:1px solid #6e5e40; border-radius:50%; box-sizing:content-box; color:var(--gold); flex-shrink:0; }
-.shortcut-card > span { font-family:var(--display); font-size:23px; line-height:1.15; }
-.eyebrow { letter-spacing:.2em; }
+.shortcut-card > span { font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); line-height:1.4; }
+/* "How it works" steps: boxed, numbered, joined by arrows. */
+.work-steps { gap:56px; }
+.work-steps li { position:relative; border:1px solid var(--edge); border-top:1px solid var(--edge); border-radius:var(--radius); padding:26px 24px; background:var(--card); }
+.work-steps li:not(:last-child)::after { content:'→'; position:absolute; right:-40px; top:50%; transform:translateY(-50%); color:var(--gold); font-size:22px; }
+.work-steps strong { font-size:21px; color:var(--ink); font-weight:400; }
 
 /* One-row header on large screens: logo left, menu centred, account links right. */
 @media (min-width:1200px) {
@@ -931,21 +935,19 @@ dialog { border-radius:12px; border-color:var(--edge); }
   .masthead .location-label { display:none; }
   .masthead .brand { justify-self:start; min-height:76px; }
   .masthead .brand img { width:auto; max-height:46px; }
-  .masthead .brand-title { font-size:19px; line-height:1.15; letter-spacing:.08em; text-align:left; max-width:240px; }
+  .masthead .brand-title { font-size:19px; line-height:1.15; letter-spacing:.06em; text-align:left; max-width:240px; }
   .navigation,.navigation.four-menus,.navigation.many-menus { position:sticky; top:0; z-index:20; height:76px; margin-top:-76px; border:0; background:transparent; pointer-events:none; padding-left:clamp(250px,20vw,300px); padding-right:clamp(230px,17vw,270px); }
   .navigation a { pointer-events:auto; min-height:76px; font-size:12px; letter-spacing:.16em; padding:0 clamp(8px,1vw,18px); border-bottom:0; position:relative; white-space:nowrap; }
   .navigation.four-menus a { white-space:nowrap; }
   .navigation a[aria-current="page"]::after { content:''; position:absolute; left:20%; right:20%; bottom:16px; height:2px; background:var(--gold); }
   html { scroll-padding-top:90px; }
 }
-@media (min-width:1200px) and (max-width:1439px) { .masthead .pilot-label { display:none; } }
-@media (min-width:1440px) { .navigation,.navigation.four-menus,.navigation.many-menus { padding-right:clamp(380px,28vw,430px); } }
+@media (min-width:1440px) { .navigation,.navigation.four-menus,.navigation.many-menus { padding-right:clamp(300px,22vw,340px); } }
+@media (max-width:900px) { .work-steps { gap:14px; } .work-steps li:not(:last-child)::after { display:none; } }
 @media (max-width:700px) {
-  h2 { font-size:32px; } h3 { font-size:25px; }
+  h2 { font-size:30px; } h3 { font-size:23px; }
   .intro { padding:30px 0 18px; }
-  .news-card h3,.dish-content h3 { font-size:24px; }
-  .shortcut-card > span { font-size:21px; }
+  .news-card h3,.dish-content h3 { font-size:22px; }
 }
-
 /* The pilot badge is no longer shown. */
 .pilot-label { display:none !important; }

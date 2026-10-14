@@ -11,7 +11,7 @@ const pdfRoot = path.join(root, 'node_modules/pdfjs-dist');
 const content = JSON.parse(await readFile(path.join(root, 'Sources/Resources/content.json'), 'utf8'));
 const serviceConfig=validateServiceConfig(JSON.parse(await readFile(path.join(root, 'web/service-config.json'),'utf8')));
 const binary = {};
-const licenses = { 'Questrial/OFL.txt': await readFile(path.join(root, 'web/assets/Questrial-OFL.txt'), 'utf8'), 'Cormorant Garamond/OFL.txt': await readFile(path.join(root, 'web/assets/Cormorant-OFL.txt'), 'utf8') };
+const licenses = { 'Questrial/OFL.txt': await readFile(path.join(root, 'web/assets/Questrial-OFL.txt'), 'utf8') };
 for (const folder of ['', 'cmaps', 'standard_fonts', 'wasm']) {
   for (const name of (await readdir(path.join(pdfRoot, folder))).sort()) {
     if (/^(LICENSE|COPYING|NOTICE)/.test(name)) licenses[path.join(folder, name)] = await readFile(path.join(pdfRoot, folder, name), 'utf8');

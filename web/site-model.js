@@ -55,6 +55,7 @@ export function validateSiteDocument(site) {
   if (site.navigation.some(item=>!pageIds.has(item.id) || !item.label?.trim())) throw new Error('Cada menú debe enlazar a una sección con nombre.');
   if (!Array.isArray(site.home.slides) || site.home.slides.length>20 || site.home.slides.some(slide=>!imageURL(slide.image) || !['left','center','right'].includes(slide.focus))) throw new Error('El carrusel admite hasta 20 imágenes.');
   if (!Number.isFinite(site.home.interval) || site.home.interval<2000 || site.home.interval>20000 || typeof site.home.autoplay!=='boolean') throw new Error('El intervalo debe estar entre 2 y 20 segundos.');
+  if (site.recipePage.categories!==undefined&&(!Array.isArray(site.recipePage.categories)||site.recipePage.categories.length>30||site.recipePage.categories.some(name=>typeof name!=='string'||!name.trim()||name.length>40))) throw new Error('Revisa las categorías del recetario.');
   if (!['center','left'].includes(site.home.alignment) || !['carousel','grid','list'].includes(site.home.newsLayout) || !['grid','list'].includes(site.recipePage.layout)) throw new Error('Selecciona un acomodo válido.');
   if (!Array.isArray(site.home.sectionOrder) || site.home.sectionOrder.length!==3 || new Set(site.home.sectionOrder).size!==3 || site.home.sectionOrder.some(x=>!['welcome','news','shortcuts'].includes(x))) throw new Error('Revisa el orden de las secciones.');
   for (const item of site.recipes) {

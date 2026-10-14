@@ -873,3 +873,26 @@ body:not(.visual-editing) #layout-edit-layer { display:none !important; }
   .cms-drawer::before { content:''; display:block; width:44px; height:4px; border-radius:2px; background:var(--line); margin:-8px auto 14px; }
   .drawer-actions { bottom:0; }
 }
+
+/* Blocks without a card: only the content (button, text, title) is shown. */
+.custom-block[data-plain="true"] { background:none; border:0; overflow:visible; }
+.custom-block[data-plain="true"] .block-copy { padding:0; }
+.custom-block[data-plain="true"].type-button .block-copy { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.custom-block[data-plain="true"].type-button .block-copy .button { margin:0; }
+.custom-block[data-plain="true"] .block-copy h2 { margin-top:0; }
+
+/* Stable frames: any image keeps the carousel the same height, so scaling is always proportional. */
+.carousel-media { aspect-ratio:4/3; background:#0000002e; }
+.carousel-media img,.block-carousel-track .carousel-media img { height:100%; object-fit:contain; }
+.hero.presentation-split .hero-slide { aspect-ratio:4/3; overflow:hidden; background:#0000002e; }
+.hero.presentation-split .hero-photo { height:100%; object-fit:contain; }
+/* Parts of a card (title, text, photo) can be edited but not moved or scaled on their own. */
+.layout-float-tools.is-card-part .tool-primary:not([data-layout-edit]),.layout-float-tools.is-card-part .tool-more,.layout-float-tools.is-card-part .tool-advanced { display:none !important; }
+.move-steps { display:flex; gap:12px; margin:18px 0; }
+.move-steps .button { flex:1; }
+.advanced-move { margin:16px 0; border-top:1px solid var(--line); padding-top:8px; }
+.advanced-move > summary { cursor:pointer; min-height:44px; display:flex; align-items:center; color:var(--gold); font-size:14px; }
+
+.dish-art .recipe-photo,.news-image img { width:100% !important; height:100% !important; max-width:none; object-fit:cover; }
+.dish-art:has(.recipe-photo),.news-image { width:100% !important; }
+.dish-art { width:100% !important; }

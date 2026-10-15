@@ -1027,6 +1027,12 @@ body.visual-editing .masthead .location-label { display:block; }
 .id-banner-copy h2 { font-size:clamp(19px,1.8vw,23px); margin:7px 0 0; line-height:1.25; }
 .id-banner-text { margin:0; font-size:13px; line-height:1.6; color:var(--quiet); }
 @media (max-width:900px) {
+  .dish-card { display:block; grid-template-columns:none; grid-template-rows:none; }
+  .dish-art { width:auto; height:200px; min-height:0; }
+  .dish-art svg { height:160px; }
+  .art-caption { left:16px; right:auto; bottom:12px; text-align:left; font-size:10px; }
+  .dish-content { padding:18px 20px 22px; }
+  .dish-content h3 { font-size:22px; }
   .id-banner { grid-template-columns:1fr; gap:14px; padding:0 20px 22px; }
   .id-banner-photo { width:calc(100% + 40px); margin:0 -20px; height:150px; }
   .recipe-meta { flex-wrap:wrap; }
@@ -1094,11 +1100,16 @@ body.visual-editing .masthead .location-label { display:block; }
 .book-status-main h3 { font-size:clamp(18px,1.8vw,22px); margin:9px 0 0; line-height:1.25; }
 .book-status-photo { display:block; width:100%; height:116px; object-fit:cover; object-position:center 54%; filter:brightness(.78); }
 @media (max-width:900px) {
-  .book-empty.has-photo { grid-template-columns:1fr; min-height:0; margin-top:20px; }
-  .book-empty.has-photo .book-cover { min-height:0; height:clamp(220px,56vw,360px); }
+  .book-empty.has-photo { display:block; min-height:0; margin-top:20px; padding:0; }
+  .book-empty.has-photo .book-cover { display:block; grid-column:auto; grid-row:auto; width:100%; max-width:none; margin:0; min-height:0; height:clamp(220px,56vw,360px); }
+  .book-empty.has-photo > .book-copy { display:block; grid-column:auto; grid-row:auto; padding:26px 22px 30px; }
+  .book-empty.has-photo .book-copy .button { width:auto; min-height:46px; }
+  .book-empty.has-photo .book-actions { align-items:flex-start; }
+  .book-empty.has-photo .book-actions .button { flex:0 0 auto; }
   .book-cards-grid { grid-template-columns:1fr; }
+  .book-card { min-height:0; }
   .book-status { grid-template-columns:1fr; }
-  .book-status-main { flex-direction:column; align-items:flex-start; }
+  .book-status > .book-status-main { display:flex; grid-template-columns:none; flex-direction:column; align-items:flex-start; padding:22px; }
   .book-status-photo { height:140px; }
 }
 

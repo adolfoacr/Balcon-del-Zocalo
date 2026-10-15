@@ -21,7 +21,7 @@ try {
       await page.waitForFunction(hash=>document.querySelector(`[data-nav="${hash}"]`)?.getAttribute('aria-current')==='page',hash);
       const layout = await page.evaluate(() => ({
         overflow:document.documentElement.scrollWidth > innerWidth,
-        heroOverlap:(() => {const a=document.querySelector('.hero-copy .button'),b=document.querySelector('.hero .carousel-controls');return a && b && !b.hidden ? a.getBoundingClientRect().bottom + 8 > b.getBoundingClientRect().top : false;})(),
+        heroOverlap:(() => {const a=document.querySelector('.hero-copy .button'),b=document.querySelector('.hero .carousel-controls');if(!a||!b||b.hidden)return false;const x=a.getBoundingClientRect(),y=b.getBoundingClientRect();return x.left<y.right&&y.left<x.right&&x.top<y.bottom&&y.top<x.bottom;})(),
         nav:[...document.querySelectorAll('[data-nav]')].map(el => {const r=el.getBoundingClientRect();return {width:r.width,height:r.height};}),
         cards:[...document.querySelectorAll('.dish-card')].map(el => el.getBoundingClientRect().height),
         cover:(() => {const el=document.querySelector('.book-empty:not(.has-photo) .book-cover');if(!el)return null;const r=el.getBoundingClientRect();return r.width/r.height;})()

@@ -921,13 +921,17 @@ dialog { border-radius:6px; border-color:var(--edge); }
 .pilot-label { display:none !important; }
 
 /* Header: logo with subtitle on the left, menu in the middle, account on the right. */
-.brand { display:grid; align-content:center; grid-template-columns:auto auto; grid-template-areas:"logo title" "logo sub"; column-gap:0; justify-content:start; justify-items:start; align-items:center; text-align:left; }
+.brand { display:grid; align-content:center; grid-template-columns:auto auto; grid-template-areas:"logo title" "logo sub"; gap:0; justify-content:start; justify-items:start; align-items:center; text-align:left; }
 .brand img:not([hidden]) { grid-area:logo; margin-right:10px; }
 .brand-title { grid-area:title; text-align:left; font-size:18px; font-weight:700; letter-spacing:-.04em; line-height:1.05; }
 .brand-sub { grid-area:sub; display:block; margin-top:4px; font-size:9px; letter-spacing:.33em; line-height:1.3; color:var(--gold); text-transform:uppercase; font-weight:400; }
 .brand-sub[hidden] { display:none; }
-.account-tools::after { content:''; flex:none; width:30px; height:30px; margin-left:4px; border:1px solid #887044; border-radius:50%; background:radial-gradient(circle,transparent 0 4px,#c8ab6b 4px 5px,transparent 5px); }
-.account-tools a,.account-tools button { font-size:12px; color:#ceb783; }
+.site-header { display:contents; }
+.account-tools { align-items:center; gap:6px 10px; }
+.account-tools a,.account-tools button { font-size:12px; letter-spacing:.04em; color:#d9c394; transition:color .15s,background-color .15s,border-color .15s; }
+.account-tools a:hover,.account-tools button:hover { color:#fff; }
+.account-tools a[href="#registro"],.account-tools [data-account-logout] { min-height:36px; padding:0 18px; border:1px solid #8a7548; border-radius:999px; color:#f0dcae; }
+.account-tools a[href="#registro"]:hover,.account-tools [data-account-logout]:hover { background:var(--gold); border-color:var(--gold); color:#1b1a15; }
 .masthead .location-label { display:none; }
 body.visual-editing .masthead .location-label { display:block; }
 @media (max-width:999px) {
@@ -937,16 +941,37 @@ body.visual-editing .masthead .location-label { display:block; }
   .brand-sub { font-size:8px; letter-spacing:.24em; }
   body.visual-editing .masthead { grid-template-columns:auto minmax(0,1fr) auto; }
 }
-@media (max-width:420px) { .account-tools::after { display:none; } .brand-sub { font-size:7px; letter-spacing:.16em; white-space:nowrap; } }
+@media (max-width:420px) { .brand-sub { font-size:7px; letter-spacing:.16em; white-space:nowrap; } }
 @media (min-width:1000px) {
-  .masthead { max-width:none; margin:0; height:75px; padding:0 clamp(24px,4.3vw,69px); grid-template-columns:auto 1fr auto; gap:24px; position:sticky; top:0; z-index:15; background:#161715; border-bottom:1px solid #383931; }
-  body.visual-editing .navigation,body.visual-editing .navigation.four-menus,body.visual-editing .navigation.many-menus { margin-left:calc(clamp(24px,4.3vw,69px) + 470px); }
-  .masthead .brand { justify-self:start; min-height:75px; }
+  /* One sticky row: brand left, menu truly centred, account right. */
+  .site-header { position:sticky; top:0; z-index:30; display:grid; grid-template-columns:minmax(max-content,1fr) auto minmax(max-content,1fr); grid-template-rows:76px; align-items:stretch; column-gap:clamp(16px,2.4vw,40px); padding:0 clamp(24px,4vw,64px); background:#161715fa; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-bottom:1px solid #383931; }
+  .site-header .masthead { display:contents; }
+  .masthead .brand { grid-column:1; grid-row:1; justify-self:start; align-self:center; min-height:0; padding:0; }
   .masthead .brand img:not([hidden]) { width:auto; max-height:44px; }
-  .navigation,.navigation.four-menus,.navigation.many-menus { position:sticky; top:0; z-index:20; display:flex; justify-content:safe center; gap:clamp(12px,2.2vw,35px); height:75px; margin:-75px clamp(250px,19vw,300px) 0 calc(clamp(24px,4.3vw,69px) + 310px); border:0; background:transparent; pointer-events:none; padding:0; overflow-x:auto; scrollbar-width:none; }
-  .navigation a,.navigation.many-menus a,.navigation.four-menus a { pointer-events:auto; box-sizing:border-box; height:75px; min-height:75px; padding:0 2px; font-size:12px; letter-spacing:.1em; white-space:nowrap; flex:0 0 auto; min-width:0; border-bottom:2px solid transparent; }
-  .navigation a[aria-current="page"] { border-color:var(--gold); }
+  .brand-title { font-size:20px; }
+  .brand-sub { font-size:9px; letter-spacing:.3em; }
+  .masthead .edition { grid-column:3; grid-row:1; justify-self:end; align-self:center; }
+  .site-header .navigation,.site-header .navigation.four-menus,.site-header .navigation.many-menus { grid-column:2; grid-row:1; position:static; display:flex; justify-content:safe center; align-items:stretch; gap:clamp(2px,.8vw,12px); height:auto; min-width:0; margin:0; padding:0; border:0; background:none; overflow-x:auto; scrollbar-width:none; pointer-events:auto; }
+  .site-header .navigation::-webkit-scrollbar { display:none; }
+  .navigation a,.navigation.many-menus a,.navigation.four-menus a { position:relative; box-sizing:border-box; display:flex; align-items:center; justify-content:center; height:auto; min-height:0; min-width:0; flex:0 0 auto; padding:0 clamp(8px,1.1vw,18px); font-size:12px; letter-spacing:.11em; white-space:nowrap; color:#b3b3ad; border-bottom:0; }
+  .navigation a:hover { color:#fff; }
+  .navigation a::after { content:''; position:absolute; left:clamp(8px,1.1vw,18px); right:clamp(8px,1.1vw,18px); bottom:-1px; height:2px; background:transparent; transition:background-color .15s; }
+  .navigation a:hover::after { background:#6c5d3d; }
+  .navigation a[aria-current="page"] { color:var(--gold); border-color:transparent; }
+  .navigation a[aria-current="page"]::after { background:var(--gold); }
+  /* While editing, the editable city/subtitle label sits on a thin second row. */
+  body.visual-editing .site-header { grid-template-rows:76px auto; }
+  body.visual-editing .masthead .location-label { display:block; grid-column:1 / -1; grid-row:2; padding:4px 0 8px; }
   html { scroll-padding-top:90px; }
+}
+@media (min-width:1000px) and (max-width:1199px) {
+  /* Narrower desktops: brand and account on the first row, the full menu on its own row. */
+  .site-header { grid-template-columns:minmax(0,1fr) auto; grid-template-rows:64px 46px; row-gap:0; }
+  .masthead .edition { grid-column:2; }
+  .site-header .navigation,.site-header .navigation.four-menus,.site-header .navigation.many-menus { grid-column:1 / -1; grid-row:2; border-top:1px solid #2c2d28; margin:0 calc(-1 * clamp(24px,4vw,64px)); padding:0 clamp(24px,4vw,64px); }
+  body.visual-editing .site-header { grid-template-rows:64px 46px auto; }
+  body.visual-editing .masthead .location-label { grid-row:3; }
+  html { scroll-padding-top:130px; }
 }
 
 /* Home: boxed hero, photograph on the right. */
@@ -971,6 +996,15 @@ body.visual-editing .masthead .location-label { display:block; }
   .hero.presentation-overlay .hero-copy { width:100%; min-height:0; padding:26px 22px 30px; background:none; }
   .hero-badge { right:14px; bottom:auto; top:calc(clamp(220px,56vw,340px) - 48px); }
 }
+
+/* Home: featured banner (image, text and button editable). */
+.feature-banner { position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); align-items:stretch; margin:17px 0 0; border:1px solid #6d5b3a; background:#23231e; overflow:hidden; }
+.feature-banner .book-banner-photo { position:relative; min-height:230px; order:2; }
+.feature-banner .book-banner-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 55%; filter:brightness(.88); }
+.feature-banner .book-banner-copy { align-self:center; padding:34px clamp(22px,3.4vw,48px); }
+.feature-banner h2 { font-size:clamp(32px,4vw,52px); line-height:1.05; letter-spacing:-.03em; margin:14px 0 12px; }
+.feature-banner p { margin:0 0 20px; max-width:460px; font-size:15px; line-height:1.55; color:var(--lead); }
+@media (max-width:760px) { .feature-banner { grid-template-columns:1fr; } .feature-banner .book-banner-photo { order:-1; min-height:0; height:200px; } .feature-banner .book-banner-copy { padding:24px 20px 26px; } }
 
 /* Home: three photo cards, cultural strip. */
 .home-shortcuts { margin:0; }
@@ -1156,3 +1190,5 @@ body.visual-editing .masthead .location-label { display:block; }
 }
 /* The "Más" menu must stay above the floating edit tools while it is open. */
 .editor-tools:has(.editor-more[open]) { z-index:60; }
+
+.reader-focus .site-header { display:none !important; }

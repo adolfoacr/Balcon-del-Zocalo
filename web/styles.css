@@ -1192,3 +1192,8 @@ body.visual-editing .masthead .location-label { display:block; }
 .editor-tools:has(.editor-more[open]) { z-index:60; }
 
 .reader-focus .site-header { display:none !important; }
+
+/* Photos in cards always fill their fixed frame (cropped, never stretched); zoom scales them inside the frame. */
+.dish-art,.news-image,.lab-pathway-media,.note-photo { overflow:hidden; }
+.dish-art:has(.recipe-photo) { display:block; }
+.dish-art .recipe-photo { position:absolute !important; inset:0; width:100% !important; height:100% !important; max-width:none; object-fit:cover; }

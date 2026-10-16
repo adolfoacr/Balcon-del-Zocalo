@@ -1197,3 +1197,32 @@ body.visual-editing .masthead .location-label { display:block; }
 .dish-art,.news-image,.lab-pathway-media,.note-photo { overflow:hidden; }
 .dish-art:has(.recipe-photo) { display:block; }
 .dish-art .recipe-photo { position:absolute !important; inset:0; width:100% !important; height:100% !important; max-width:none; object-fit:cover; }
+
+/* Empty labels never leave a bordered box behind. */
+.tag:empty,.eyebrow:empty,.dish-meta .tag:empty { display:none; }
+
+/* Immersive reading: nothing but the book, filling the screen. */
+.reader-focus { overflow:hidden; }
+.reader-focus .book-reading-shell { position:fixed; inset:0; z-index:100; display:flex; flex-direction:column; margin:0; padding:0; max-width:none; background:#0d0d0c; }
+.reader-focus .reader-top { position:fixed; top:max(10px,env(safe-area-inset-top)); right:12px; left:auto; z-index:120; width:auto; margin:0; padding:0; border:0; background:none; }
+.reader-focus .reader-identity,.reader-focus .reader-actions > :not(#reader-focus),.reader-focus .reader-privacy,.reader-focus .reader-ribbon,.reader-focus .reader-page-text,.reader-focus .book-page-frame::before { display:none !important; }
+.reader-focus #reader-focus { min-height:36px; padding:0 16px; font-size:12px; background:#161614d9; border-color:#5a4d34; color:#e9d4a4; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+.reader-focus .book-reading-shell .pdf-stage { flex:1; min-height:0; padding:48px 12px 76px; overflow:auto; display:grid; justify-items:center; align-items:center; background:none; }
+.reader-focus .book-page-frame { margin:auto; }
+.reader-focus .book-reading-shell .reader-controls { position:fixed; left:50%; bottom:max(14px,env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:120; display:flex; grid-template-columns:none; margin:0; padding:6px 10px; gap:8px; border:1px solid #3c3a31; border-radius:999px; background:#161614e6; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+.reader-focus .reader-controls .button { min-height:36px; padding:0 14px; font-size:12px; }
+.reader-focus .reader-controls input { min-height:36px; width:52px; }
+.reader-focus .reader-options { position:fixed; right:12px; bottom:max(14px,env(safe-area-inset-bottom)); z-index:120; margin:0; }
+.reader-focus .reader-options > span { display:none; }
+.reader-focus .reader-options label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.reader-focus .reader-options select { min-height:36px; padding:0 10px; font-size:12px; border-radius:999px; background:#161614e6; }
+.reader-focus #layout-edit-layer,.reader-focus .layout-float-tools { display:none !important; }
+@media (max-width:700px) {
+  .reader-focus .reader-options { top:max(10px,env(safe-area-inset-top)); left:12px; right:auto; bottom:auto; }
+  .reader-focus .book-reading-shell .reader-controls { flex-wrap:nowrap; width:max-content; max-width:calc(100vw - 16px); gap:6px; padding:5px 8px; }
+  .reader-focus .reader-controls label { grid-column:auto; grid-row:auto; font-size:12px; gap:5px; }
+  .reader-focus .reader-controls .button { padding:0 10px; }
+  .reader-focus .book-reading-shell .pdf-stage { padding-bottom:84px; }
+}
+/* A fixed reader needs ancestors without transforms/filters, otherwise it only covers part of the screen. */
+.reader-focus main,.reader-focus main > .book-reading-shell,.reader-focus body { transform:none !important; animation:none !important; filter:none !important; will-change:auto !important; contain:none !important; perspective:none !important; }

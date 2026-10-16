@@ -268,9 +268,17 @@ test('dragging the corner handle zooms a dish photo uniformly inside its frame a
  await editor.getByLabel('Nombre del plato',{exact:true}).fill('Platillo para escalar');await editor.getByLabel('Categoría (filtro del recetario)',{exact:true}).selectOption('Entradas');await editor.getByLabel('Ingredientes (uno por línea)',{exact:true}).fill('Uno\nDos');await editor.getByLabel('Preparación (un paso por línea)',{exact:true}).fill('Paso uno');
  await editor.getByLabel('Fotografía',{exact:true}).fill(wide);await editor.getByRole('button',{name:'Aplicar al borrador'}).click();
  const photo=page.locator('.dish-card').filter({hasText:'Platillo para escalar'}).locator('.recipe-photo');await expect(photo).toBeVisible();
- await photo.dispatchEvent('click');const handle=page.locator('.image-resize-anchors:not(.module-resize-anchors) [data-resize-corner="se"]');await expect(handle).toBeVisible();
+ await photo.scrollIntoViewIfNeeded();await photo.dispatchEvent('click');const handle=page.locator('.image-resize-anchors:not(.module-resize-anchors) [data-resize-corner="se"]');await expect(handle).toBeVisible();
  const box=await handle.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+80,box.y+box.height/2+60,{steps:8});await page.mouse.up();
  await expect.poll(()=>photo.evaluate(el=>getComputedStyle(el).transform)).not.toBe('none');
  const sizes=await photo.evaluate(el=>({w:el.offsetWidth,fw:el.parentElement.clientWidth,h:el.offsetHeight,fh:el.parentElement.clientHeight}));expect(sizes.w).toBe(sizes.fw);expect(sizes.h).toBe(sizes.fh);
  await publishDraft(page);expect(api.site.recipes.find(item=>item.name==='Platillo para escalar').imageZoom).toBeGreaterThan(100);
+});
+test('the small "Muestra" label on a dish card can be removed and leaves no empty box',async({page})=>{
+ await backend(page,'owner');await login(page,'owner');await editOn(page);await page.getByRole('link',{name:'Recetario',exact:true}).click();
+ const editor=page.locator('#cms-editor'),card=page.locator('.dish-card').first();await expect(card.locator('.dish-meta .tag')).toHaveText('Muestra');
+ await card.getByRole('button',{name:/Editar/}).first().click();await editor.getByLabel(/Etiqueta pequeña de la tarjeta/).fill('');await editor.getByRole('button',{name:'Aplicar al borrador'}).click();
+ await expect(page.locator('.dish-card').first().locator('.dish-meta .tag')).toHaveCount(0);
+ await page.locator('.dish-card').first().getByRole('button',{name:/Editar/}).first().click();await editor.getByLabel(/Etiqueta pequeña de la tarjeta/).fill('Nuevo');await editor.getByRole('button',{name:'Aplicar al borrador'}).click();
+ await expect(page.locator('.dish-card').first().locator('.dish-meta .tag')).toHaveText('Nuevo');
 });

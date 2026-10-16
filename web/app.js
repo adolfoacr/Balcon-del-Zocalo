@@ -52,6 +52,19 @@ function idBanner() {
   if(!r.bannerTitle)return '';
   return `<section class="id-banner editable-block" data-layout-key="recipe-banner" data-layout-label="Conexión con I+D">${r.bannerImage?`<img class="id-banner-photo" src="${esc(imageURL(r.bannerImage))}" alt="" loading="lazy">`:''}<div class="id-banner-copy"><span class="eyebrow">${esc(r.bannerEyebrow)}</span><h2>${esc(r.bannerTitle)}</h2></div><p class="id-banner-text">${esc(r.bannerText)}</p>${r.bannerButton?`<a class="button" ${linkAttributes(r.bannerLink||'#novedades')}>${esc(r.bannerButton)} ${iconMarkup('link','arrow-icon')}</a>`:''}${admin?.isAdmin?pencilMarkup('recipePage'):''}</section>`;
 }
+// The small label on a dish card: "Muestra" until the content is verified, or any text the administrator writes (empty = none).
+function dishBadge(item) { const label=item.badge??(item.verification!=='verified'?'Muestra':''); return String(label).trim()?`<span class="tag">${esc(label)}</span>`:''; }
+// Immersive reading: only the book, on the whole screen (browser full screen where the device allows it).
+function setReaderFocus(on) {
+  const was=document.body.classList.contains('reader-focus');
+  document.body.classList.toggle('reader-focus',on);
+  const button=document.querySelector('#reader-focus');
+  if(button){button.textContent=on?'Salir de lectura inmersiva':'Lectura inmersiva';button.setAttribute('aria-pressed',String(on));}
+  try{if(on&&!document.fullscreenElement&&document.documentElement.requestFullscreen)void document.documentElement.requestFullscreen().catch(()=>{});else if(!on&&document.fullscreenElement)void document.exitFullscreen().catch(()=>{});}catch{}
+  if(was!==on)void renderPage();
+}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('reader-focus'))setReaderFocus(false);});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.body.classList.contains('reader-focus')&&!document.querySelector('dialog[open]'))setReaderFocus(false);});
 function renderMenu() {
   if(recipeMenu && !content.recipeMenus.some(menu=>menu.id===recipeMenu))recipeMenu='';
   main.innerHTML = `<header class="intro band recipe-band editable-block" data-layout-key="recipe-heading">${content.recipePage.image?`<img class="band-photo" src="${esc(imageURL(content.recipePage.image))}" alt="">`:""}<div class="band-copy"><span class="eyebrow">${esc(content.recipePage.eyebrow)}</span><h1>${esc(content.recipePage.title)}</h1><p>${esc(content.recipePage.description)}</p></div>${admin?.isAdmin?pencilMarkup("recipePage"):""}</header>${content.recipeMenus.length?`<section class="recipe-menu-list" aria-label="Menús del recetario" data-layout-key="recipe-menus"><button class="recipe-menu-card" data-recipe-menu="" aria-pressed="${!recipeMenu}"><strong>Todo el recetario</strong><small>Recetas y aprovechamientos</small></button>${content.recipeMenus.map(menu=>`<div class="editable-block"><button class="recipe-menu-card" data-recipe-menu="${esc(menu.id)}" aria-pressed="${recipeMenu===menu.id}">${menu.image?`<img src="${esc(imageURL(menu.image))}" alt="" loading="lazy">`:''}<strong>${esc(menu.name)}</strong><small>${content.recipes.filter(recipe=>(recipe.menuIds||[]).includes(menu.id)).length} fichas</small></button>${admin?.isAdmin?pencilMarkup('recipeMenus',menu.id):''}</div>`).join('')}</section><section id="recipe-menu-selection" class="recipe-menu-selection" ${recipeMenu?'':'hidden'}></section>`:''}<div class="menu-tools" data-layout-key="recipe-tools" data-layout-label="Buscador y filtros"><label class="search-label"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="Buscar un plato o ingrediente" aria-label="Buscar un plato o ingrediente" value="${esc(query)}"></label><div class="filters" role="group" aria-label="Filtrar platos">${['Todos',...new Set([...(content.recipePage.categories||[]),...content.recipes.map(x => x.category)]),'Favoritos'].map(x => `<button class="filter" data-category="${esc(x)}" aria-pressed="${category === x}">${esc(x)}${x==='Favoritos'?'<span aria-hidden="true"> ♡</span>':''}</button>`).join('')}</div></div><div class="recipe-meta"><p class="footnote">${esc(content.recipePage.note??'Contenido de muestra · Las imágenes documentales no representan necesariamente las recetas.')}</p><p id="result-count" class="subtle" role="status" aria-live="polite"></p></div><section id="dish-list" class="cards" data-layout-key="recipe-dishes" data-layout-label="Platos del recetario" aria-label="Platos del recetario"></section>${idBanner()}`;
@@ -66,7 +79,7 @@ function renderDishes(refresh=true) {
   const filtered = content.recipes.filter(item => (!recipeMenu || (item.menuIds||[]).includes(recipeMenu)) && (category === 'Todos' || (category === 'Favoritos' ? favorites.has(item.id) : item.category === category)) && normalize([item.name,...item.ingredients,item.utilization||'',item.technique||'',item.research||''].join(' ')).includes(normalize(query)));
   const menu=content.recipeMenus.find(item=>item.id===recipeMenu),selection=document.querySelector('#recipe-menu-selection');if(selection){selection.hidden=!menu;selection.innerHTML=menu?`<h2>${esc(menu.name)}</h2><p>${esc(menu.description)}</p>`:'';}
   const count=document.querySelector('#result-count');if(count)count.textContent = `${filtered.length} ${filtered.length === 1 ? 'plato' : 'platos'}`;
-  const dishes=document.querySelector('#dish-list');if(dishes)dishes.innerHTML = filtered.length ? filtered.map(item => `<article class="dish-card" data-layout-key="recipe-${item.id}" data-layout-label="Platillo: ${esc(item.name)}"><div class="dish-art">${item.image?`<img class="recipe-photo" src="${esc(imageURL(item.image))}" alt="${esc(item.name)}" loading="lazy">`:dishArt(item.art)+'<span class="art-caption">Ilustración de muestra</span>'}</div>${favoriteButton(item)}<div class="dish-content"><div class="dish-meta"><span class="eyebrow">${iconMarkup(item.icon)} ${esc(item.category)}</span>${item.verification!=="verified"?'<span class="tag">Muestra</span>':""}</div><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><button class="button secondary" data-recipe="${esc(item.id)}">${esc(item.buttonLabel || "Ver ingredientes")} <span aria-hidden="true">→</span></button></div>${admin?.isAdmin?pencilMarkup("recipes",item.id):""}</article>`).join('') : `<div class="empty-result"><h3>${category === 'Favoritos' ? 'Aquí estarán tus favoritos' : 'No encontramos ese sabor'}</h3><p class="subtle">${category === 'Favoritos' ? 'Toca el corazón de un plato para guardarlo.' : 'Prueba con otro nombre o ingrediente.'}</p><button class="button secondary" data-reset>Ver todos los platos</button></div>`;
+  const dishes=document.querySelector('#dish-list');if(dishes)dishes.innerHTML = filtered.length ? filtered.map(item => `<article class="dish-card" data-layout-key="recipe-${item.id}" data-layout-label="Platillo: ${esc(item.name)}"><div class="dish-art">${item.image?`<img class="recipe-photo" src="${esc(imageURL(item.image))}" alt="${esc(item.name)}" loading="lazy">`:dishArt(item.art)+'<span class="art-caption">Ilustración de muestra</span>'}</div>${favoriteButton(item)}<div class="dish-content"><div class="dish-meta"><span class="eyebrow">${iconMarkup(item.icon)} ${esc(item.category)}</span>${dishBadge(item)}</div><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><button class="button secondary" data-recipe="${esc(item.id)}">${esc(item.buttonLabel || "Ver ingredientes")} <span aria-hidden="true">→</span></button></div>${admin?.isAdmin?pencilMarkup("recipes",item.id):""}</article>`).join('') : `<div class="empty-result"><h3>${category === 'Favoritos' ? 'Aquí estarán tus favoritos' : 'No encontramos ese sabor'}</h3><p class="subtle">${category === 'Favoritos' ? 'Toca el corazón de un plato para guardarlo.' : 'Prueba con otro nombre o ingrediente.'}</p><button class="button secondary" data-reset>Ver todos los platos</button></div>`;
   for(const item of filtered)applyImageSizing(document.querySelector(`[data-layout-key="recipe-${item.id}"] .recipe-photo`),item);if(refresh)layout?.refresh();
 }
 function fileInput() { if(!admin?.isAdmin)return ''; return '<input type="file" id="book-file" accept="application/pdf,.pdf" hidden><p id="book-error" class="error-message" role="alert" hidden></p>'; }
@@ -115,7 +128,7 @@ function route() {
   const activeSlides=new Map([...main.querySelectorAll('[data-carousel]')].map(el=>[el.dataset.carousel,Number(el.dataset.activeSlide)||0]));
   disposeCarousels(); disposeCarousels = () => {};
   ++renderVersion; renderTask?.cancel();
-  const requested=location.hash.slice(1);if(requested!=='libro')document.body.classList.remove('reader-focus');
+  const requested=location.hash.slice(1);if(requested!=='libro'&&document.body.classList.contains('reader-focus'))setReaderFocus(false);
   const tab = ['cuenta','registro','recuperar','nueva-clave','admin',...content.navigation.map(item=>item.id)].includes(requested) ? requested : (content.navigation.find(item=>item.visible)?.id||'empty');
   for (const link of document.querySelectorAll('[data-nav]')) {
     if (link.dataset.nav === tab) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
@@ -218,8 +231,10 @@ async function renderPage() {
   try {
     const page = await activeBook.getPage(number); if (version !== renderVersion) return;
     const base = page.getViewport({ scale:1 });
+    const focused = document.body.classList.contains('reader-focus');
     const available = Math.min(850, Math.max(200, document.querySelector('.pdf-stage').clientWidth - 40));
-    const scale = available * readerZoom / base.width, pixelRatio = Math.min(devicePixelRatio || 1,2);
+    const fit = focused ? Math.min((document.querySelector('.pdf-stage').clientWidth - 24) / base.width, (innerHeight - 136) / base.height) : available / base.width;
+    const scale = fit * readerZoom, pixelRatio = Math.min(devicePixelRatio || 1,2);
     const viewport = page.getViewport({ scale:scale * pixelRatio });
     canvas.width = viewport.width; canvas.height = viewport.height;
     canvas.style.width = `${viewport.width / pixelRatio}px`; canvas.style.height = `${viewport.height / pixelRatio}px`;
@@ -258,7 +273,7 @@ document.addEventListener('click', event => {
   if (target.closest('[data-book-open]')) { if (content.bookPage.pdfURL) void openPublishedBook(); else if (admin?.isAdmin) document.querySelector('#book-file')?.click(); else toast(content.bookPage.pending||'El libro oficial se integrará cuando esté disponible.'); }
   { const jump=target.closest('[data-scroll-to]'); if (jump) document.querySelector(`[data-layout-key="${jump.dataset.scrollTo}"]`)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}); }
   if (target.id === 'import-book' && admin?.isAdmin) document.querySelector('#book-file')?.click();
-  if(target.id==='reader-focus'){const focused=document.body.classList.toggle('reader-focus');target.textContent=focused?'Salir de lectura inmersiva':'Lectura inmersiva';target.setAttribute('aria-pressed',String(focused));void renderPage();}
+  if(target.id==='reader-focus')setReaderFocus(!document.body.classList.contains('reader-focus'));
   if (target.id === 'prev-page' && currentPage > 1) { currentPage--; void renderPage(); }
   if (target.id === 'next-page' && currentPage < book.numPages) { currentPage++; void renderPage(); }
   if (target.id === 'remove-book' && admin?.isAdmin) document.querySelector('#remove-dialog').showModal();

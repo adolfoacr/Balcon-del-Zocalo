@@ -184,3 +184,12 @@ test('slow library startup does not replace the file input while selecting a PDF
 });
 
 test('book reader supports integrated immersive reading and zoom',async({page})=>{await uploadPDF(page);await page.getByRole('button',{name:'Lectura inmersiva',exact:true}).click();await expect(page.locator('.navigation')).toBeHidden();await expect(page.locator('#pdf-canvas')).toBeVisible();await page.getByLabel('Tamaño de lectura',{exact:true}).selectOption('1.5');await expect(page.locator('#reader-status')).toHaveText('Página 1 de 2');await page.getByRole('button',{name:'Salir de lectura inmersiva',exact:true}).click();await expect(page.locator('.navigation')).toBeVisible();await page.getByRole('link',{name:'Recetario',exact:true}).click();await expect(page.locator('body')).not.toHaveClass(/reader-focus/);});
+test('book reader immersive mode shows only the book on the whole screen',async({page},info)=>{
+ await uploadPDF(page);await page.getByRole('button',{name:'Lectura inmersiva',exact:true}).click();
+ await expect(page.locator('.reader-identity')).toBeHidden();await expect(page.locator('.reader-ribbon')).toBeHidden();await expect(page.locator('.reader-privacy')).toBeHidden();await expect(page.locator('.site-header')).toBeHidden();
+ await expect(page.getByRole('button',{name:'Salir de lectura inmersiva',exact:true})).toBeVisible();
+ const box=await page.locator('#pdf-canvas').boundingBox(),view=page.viewportSize();
+ expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(view.height);expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(view.width);
+ await page.screenshot({path:`test-results/${info.project.name}-inmersiva.png`});
+ await page.keyboard.press('Escape');await expect(page.locator('body')).not.toHaveClass(/reader-focus/);await expect(page.locator('.reader-identity')).toBeVisible();
+});

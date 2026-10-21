@@ -101,7 +101,7 @@ create trigger balcon_notify_work_update after update on public.work_submissions
 create or replace function public.tg_notify_new_account() returns trigger language plpgsql security definer set search_path='' as $$
 begin
  perform public.notify_internal('user',new.id,'welcome','Te damos la bienvenida a Balcón del Zócalo','Aquí verás las respuestas a tus propuestas y las novedades del laboratorio.','#comparte','{}'::jsonb,null,'welcome:'||new.id);
- perform public.notify_internal('admins',null,'account_new','Nueva cuenta registrada',left(coalesce(nullif(trim(new.raw_user_meta_data-&gt;&gt;'full_name'),''),'Una persona'),100)||' creó una cuenta de visitante.','#admin','{}'::jsonb,new.id,'account:'||new.id);
+ perform public.notify_internal('admins',null,'account_new','Nueva cuenta registrada',left(coalesce(nullif(trim(new.raw_user_meta_data-&gt;&gt;'full_name'),''),'Una persona'),100)||' creó una cuenta.','#admin','{}'::jsonb,new.id,'account:'||new.id);
  return new;
 exception when others then return new;
 end $$;

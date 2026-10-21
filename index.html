@@ -1272,22 +1272,26 @@ body.has-bell.visual-editing .site-header{grid-template-rows:64px 46px auto}
 body.has-bell.visual-editing .masthead .location-label{grid-row:3}
 html:has(body.has-bell){scroll-padding-top:130px}
 }
-/* Menus that do not fit are reflowed instead of hidden: stacked row on desktop, wrapped rows, or a multi-row tab bar on phones. */
-.navigation.nav-wrap{flex-wrap:wrap;overflow:visible!important;justify-content:center!important}
-@media (min-width:701px){.navigation.nav-wrap a{min-height:46px}}
-@media (min-width:701px) and (max-width:999px){.navigation.nav-wrap a{min-width:0;min-height:44px;height:auto;padding:6px 14px}}
+/* Menus that do not fit stay on one row you can swipe, scroll, drag or wheel through; the bar gets its own full-width row on desktop. */
+@media (min-width:701px){
+:root .site-header .navigation.nav-scroll{overflow-x:auto!important;overflow-y:hidden;justify-content:flex-start;scrollbar-width:thin;scrollbar-color:#8a7548 transparent;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;cursor:grab}
+:root .site-header .navigation.nav-scroll::-webkit-scrollbar{display:block;height:6px}
+:root .site-header .navigation.nav-scroll::-webkit-scrollbar-thumb{background:#8a7548;border-radius:3px}
+:root .site-header .navigation.nav-scroll::-webkit-scrollbar-track{background:transparent}
+.navigation.nav-scroll.is-dragging{cursor:grabbing;scroll-behavior:auto;user-select:none}
+.navigation.nav-scroll.is-dragging a{pointer-events:none}
+.navigation.nav-scroll a{flex:0 0 auto}
+.navigation.nav-scroll.fade-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+.navigation.nav-scroll.fade-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px);mask-image:linear-gradient(90deg,transparent,#000 44px)}
+.navigation.nav-scroll.fade-l.fade-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent)}
+}
 @media (min-width:1000px){
-:root .site-header.nav-stacked{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:64px auto;row-gap:0}
+:root .site-header.nav-stacked{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:64px 46px;row-gap:0}
 :root .site-header.nav-stacked .masthead .edition{grid-column:2}
 :root .site-header.nav-stacked .navigation{grid-column:1 / -1;grid-row:2;border-top:1px solid #2c2d28;margin:0 calc(-1 * clamp(24px,4vw,64px));padding:0 clamp(24px,4vw,64px)}
-:root body.visual-editing .site-header.nav-stacked{grid-template-rows:64px auto auto}
+:root body.visual-editing .site-header.nav-stacked{grid-template-rows:64px 46px auto}
 :root body.visual-editing .site-header.nav-stacked .masthead .location-label{grid-row:3}
 html:has(.site-header.nav-stacked){scroll-padding-top:130px}
-}
-@media (max-width:700px){
-.navigation.nav-wrap{display:grid!important;grid-template-columns:repeat(var(--nav-cols,4),minmax(0,1fr));justify-content:stretch!important}
-.navigation.nav-wrap a{flex:none;min-width:0;width:auto}
-:root.nav-multirow:not(.reader-focus){--tabbar-h:var(--nav-h)}
 }</style>
 
 </head>
@@ -1442,12 +1446,17 @@ document.addEventListener("keydown",e=>{if(!open)return;if(e.key==="Escape"){e.p
 document.addEventListener("focusin",e=>{open&&!e.target.closest?.("#notif-panel,.notif-bell")&&closePanel(!1)});
 addEventListener("hashchange",()=>closePanel(!1));addEventListener("resize",()=>open&&place());addEventListener("focus",()=>refresh(!1));
 document.addEventListener("visibilitychange",()=>{document.hidden?clearTimeout(timer):refresh(!1)});
-function fitNav(){let nav=document.querySelector(".navigation"),hdr=document.querySelector(".site-header"),root=document.documentElement;if(!nav)return;nav.classList.remove("nav-wrap");hdr?.classList.remove("nav-stacked");nav.style.removeProperty("--nav-cols");root.classList.remove("nav-multirow");root.style.removeProperty("--nav-h");if(nav.hidden)return;
- let n=nav.querySelectorAll("a").length,w=innerWidth;
- if(w<=700){if(n>4){let per=Math.max(3,Math.min(5,Math.floor(w/84))),cols=Math.ceil(n/Math.ceil(n/per));nav.style.setProperty("--nav-cols",String(cols));nav.classList.add("nav-wrap");root.style.setProperty("--nav-h",nav.offsetHeight+"px");root.classList.add("nav-multirow")}return}
- let over=()=>nav.scrollWidth>nav.clientWidth+1;if(!over())return;if(w>=1000&&hdr){hdr.classList.add("nav-stacked");if(!over())return}nav.classList.add("nav-wrap")}
+function fitNav(){let nav=document.querySelector(".navigation"),hdr=document.querySelector(".site-header");if(!nav)return;nav.classList.remove("nav-scroll","fade-l","fade-r");hdr?.classList.remove("nav-stacked");if(nav.hidden||innerWidth<=700)return;
+ let over=()=>nav.scrollWidth>nav.clientWidth+1;if(!over())return;if(innerWidth>=1000&&hdr){hdr.classList.add("nav-stacked");nav.classList.add("nav-scroll");if(!over()){nav.classList.remove("nav-scroll");return}}nav.classList.add("nav-scroll");centerActive();edges()}
+function edges(){let nav=document.querySelector(".navigation.nav-scroll");if(!nav)return;nav.classList.toggle("fade-l",nav.scrollLeft>4);nav.classList.toggle("fade-r",nav.scrollLeft+nav.clientWidth<nav.scrollWidth-4)}
+function centerActive(){let nav=document.querySelector(".navigation.nav-scroll"),a=nav?.querySelector('[aria-current="page"]');if(!a)return;let s=nav.style.scrollBehavior;nav.style.scrollBehavior="auto";nav.scrollLeft=Math.max(0,a.offsetLeft-(nav.clientWidth-a.offsetWidth)/2);nav.style.scrollBehavior=s;edges()}
 let fitTimer=0;const fitSoon=()=>{cancelAnimationFrame(fitTimer);fitTimer=requestAnimationFrame(fitNav)};
-document.addEventListener("balcon:header",fitSoon);addEventListener("resize",fitSoon);addEventListener("load",fitSoon);document.fonts?.ready?.then(fitSoon);fitSoon();
+document.addEventListener("balcon:header",fitSoon);addEventListener("resize",fitSoon);addEventListener("load",fitSoon);addEventListener("hashchange",()=>requestAnimationFrame(centerActive));document.fonts?.ready?.then(fitSoon);fitSoon();
+document.addEventListener("scroll",e=>{e.target instanceof Element&&e.target.classList?.contains("navigation")&&edges()},!0);
+document.addEventListener("wheel",e=>{let nav=e.target instanceof Element&&e.target.closest(".navigation.nav-scroll");if(!nav||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;let max=nav.scrollWidth-nav.clientWidth,next=nav.scrollLeft+e.deltaY;if((e.deltaY<0&&nav.scrollLeft<=0)||(e.deltaY>0&&nav.scrollLeft>=max))return;e.preventDefault();nav.scrollLeft=Math.max(0,Math.min(max,next))},{passive:!1});
+let drag=null;document.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||e.button!==0)return;let nav=e.target instanceof Element&&e.target.closest(".navigation.nav-scroll");if(nav)drag={nav,x:e.clientX,left:nav.scrollLeft,moved:!1}});
+document.addEventListener("pointermove",e=>{if(!drag)return;let dx=e.clientX-drag.x;if(!drag.moved&&Math.abs(dx)<6)return;drag.moved=!0;drag.nav.classList.add("is-dragging");drag.nav.scrollLeft=drag.left-dx});
+let endDrag=()=>{if(!drag)return;let n=drag.nav;drag=null;setTimeout(()=>n.classList.remove("is-dragging"),0)};document.addEventListener("pointerup",endDrag);document.addEventListener("pointercancel",endDrag);
 me()&&sync()})();</script>
 </body>
 </html>

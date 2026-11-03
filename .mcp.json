@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "abicut": {
+      "command": "npx",
+      "args": ["-y", "abicut-mcp@latest"],
+      "env": {
+        "ABICUT_TOKEN": "${ABICUT_TOKEN}"
+      }
+    }
+  }
+}

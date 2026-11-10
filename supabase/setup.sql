@@ -127,7 +127,7 @@ revoke all on function public.set_site_admin(text,boolean) from public;
 grant execute on function public.set_site_admin(text,boolean) to authenticated;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
-values('site-media','site-media',true,52428800,array['image/jpeg','image/png','image/webp','image/gif','application/pdf'])
+values('site-media','site-media',true,31457280,array['image/jpeg','image/png','image/webp','image/gif','application/pdf'])
 on conflict(id) do update set public=true,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
 drop policy if exists cms_media_read on storage.objects;
 create policy cms_media_read on storage.objects for select to anon, authenticated using (bucket_id='site-media');

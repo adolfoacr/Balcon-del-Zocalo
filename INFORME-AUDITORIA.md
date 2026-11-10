@@ -185,3 +185,52 @@ No hay Chromium ni jsdom en el entorno, así que **no** hubo prueba en navegador
 2. **Posiciones libres ya guardadas:** no se modificó ningún dato. Si alguna posición libre la habías puesto *a propósito* a nivel página para un elemento que vive dentro de un bloque, ahora se verá dentro de su bloque (que es el comportamiento que pediste).
 3. **Cristal en navegadores viejos:** sin `backdrop-filter`, el fondo cristal se ve como un fondo semitransparente sencillo. En navegadores actuales funciona completo.
 4. **Pruébalo en tu navegador antes de publicar:** sobre todo (a) arrastrar una fila en el panel, (b) mover el texto de un banner en la vista previa y luego reordenar el banner, (c) una imagen en modo «Estirar» dentro de un módulo con alto definido.
+
+---
+
+## 10. Pulido de interfaz del editor (capturas del dueño)
+
+**Qué se veía mal (en las 3 capturas del teléfono):**
+1. **Vista pública, carrusel:** los controles (flechas circulares y el contador «2/2») quedaban encimados con el botón «RESERVA» de la diapositiva: se leía «RESERVA 2/2» todo junto y las flechas mordían los bordes del botón.
+2. **Modo edición:** la barra flotante del elemento seleccionado (Editar · Mover · Duplicar · Eliminar · ⋯ y la segunda fila: candado, flechas, centrar, marco, escalar) aparecía **sobre el centro del elemento**, tapando la imagen y el propio botón «RESERVA», y se sentía fuera del ancho útil de la pantalla chica.
+
+### Causas (confirmadas en el código)
+
+**Del encimado del carrusel** — es el carrusel de bloques (`ct()` → `.custom-block.type-carousel`, presentación `overlay`), agravado por módulo con tamaño definido:
+- Con `.module-framed`, la pista se estira a la altura del módulo (`.module-framed .block-carousel-track{flex:1}`) y la entrada también (`.module-framed .carousel-entry:not([hidden]){height:100%}`). La foto, con `object-fit:contain`, **no** se estira: queda su banda vacía arriba/abajo.
+- El texto de la diapositiva (`.carousel-copy`) es `position:absolute; inset:0` sobre **toda la entrada estirada**, con la columna centrada (`justify-content:center`): el botón de la diapositiva cae en la banda baja, justo donde termina la pista y empieza la fila de controles.
+- Los controles (`.carousel-controls`, generados por `KI()`) van en flujo tras la pista, **sin `position` ni `z-index`**: cualquier contenido desbordado o elemento con posición libre (que `Ng()` pinta con `z-index:2`) se les encima, y el contador se lee a través del botón.
+- En el hero pasaba algo parecido en potencia: la regla que debía mandar los controles de la presentación overlay a la esquina superior derecha **nunca aplicó**, porque el selector está roto en el CSS original: `.hero.presentation-overlay.carousel-controls` (sin combinador de descendiente; el `div` de controles nunca tiene las clases `hero`/`presentation-overlay`). Los controles quedaban abajo al centro, fiados solo a que el `padding-bottom` de `.hero-copy` alcanzara (46 px en escritorio contra ~74 px que ocupan los controles).
+
+**De la barra flotante** — función `R()` del módulo de diseño `ht`, elemento `.layout-float-tools`:
+- En modo edición (`t`) la barra se anclaba al **elemento seleccionado** con `top = elemento.top − 46`, suponiendo una barra de ~46 px. Al seleccionar el botón «RESERVA» (un elemento *interno*, abajo en la diapositiva), la barra caía en mitad de la imagen; y al abrir la fila avanzada (⋯) la barra mide ~98 px, así que crecía hacia abajo y **tapaba el botón completo**.
+- El `left` se calculaba con un ancho fijo supuesto de 382 px, no con el ancho real de la barra.
+
+### Cambios exactos (mismo estilo de parche `/* FIX toki: … */`, solo en la copia local)
+
+**CSS — bloque nuevo al final del primer `<style>`, tras el de C11 (7 reglas):**
+1. `.carousel-controls{position:relative;z-index:8}` — la fila de controles se vuelve una banda protegida: queda por encima de los elementos libres (`z-index:2`) y del texto desbordado; el contador y las flechas ya no se leen a través de ningún botón. (El hero conserva su `position:absolute` por especificidad mayor.)
+2. `.block-carousel>.carousel-controls{margin-top:14px}` — separación propia entre la pista y los controles (en teléfono la regla original los dejaba con `margin:0`).
+3. `.module-framed .carousel-entry.presentation-overlay:not([hidden]){height:auto}` — en presentación overlay la entrada ya **no se estira** a la altura del módulo: mide lo que mide la foto, la copia queda confinada a la foto y el botón de la diapositiva no puede caer en la banda vacía sobre los controles. El espacio sobrante del módulo queda entre la foto y los controles, como separación limpia.
+4. `.carousel-entry.presentation-overlay .carousel-copy{overflow:hidden}` — red de seguridad: si el texto de una diapositiva es más alto que la foto, se recorta **dentro** de la foto, nunca sobre los controles.
+5. `.hero .hero-copy{padding-bottom:96px}` — zona segura garantizada bajo el texto del hero en todos los tamaños (antes 46/34/28 px según el punto de corte, menos que los ~74 px de los controles).
+6. `.hero.presentation-overlay .carousel-controls{position:absolute;top:16px;right:16px;bottom:auto;left:auto;transform:none;z-index:9}` — se hace efectiva la intención original del autor (la regla de arriba, con el selector corregido): en el hero overlay los controles viven en la esquina superior derecha, lejos del botón de la copia.
+7. `.layout-float-tools{max-width:min(382px,calc(100vw - 16px))}` — la barra nunca excede el ancho útil (antes `100vw − 8px`).
+
+**JS — un solo inserto en `R()` (módulo `ht`, script principal), tras `RI=parseFloat(PA.style.left);`:**
+- Solo en modo edición (`t`): el ancla deja de ser el elemento interno y pasa a ser **su bloque** (`sA.closest(".custom-block,.hero")`; si el elemento no vive en un bloque, el ancla es el propio elemento). La barra se coloca **encima del bloque** (`top = bloque.top − JB − 6`) si cabe sobre el límite seguro `UI` (bajo la navegación y la barra de herramientas fija); **si no cabe, debajo del bloque** (`top = bloque.bottom + 6`) si cabe sobre la navegación inferior; si ninguno de los dos huecos existe, se conserva el cálculo anterior (`$Q`), así que nunca queda peor que antes.
+- El `left` se recalcula con el **ancho real medido** de la barra (`BW`), alineado al borde derecho del bloque y contenido entre 4 px y `innerWidth − BW − 4`.
+- El modo sin edición (`!t`) no se tocó: conserva su colocación y su bucle anti-colisión. El popup de flechas (`K`) se posiciona desde el rectángulo de la barra, así que sigue a la barra a su nuevo sitio sin cambios.
+
+### Cómo quedó (geometría verificada por análisis sobre las capturas)
+
+Sin navegador en esta máquina no hay render real; la comprobación es aritmética con las proporciones de las capturas (teléfono ≈390 px CSS de ancho) y las fórmulas del código:
+- **Antes:** botón «RESERVA» con su borde superior a ≈567 px CSS; barra en `567 − 46 = 521` con alto ≈50 px (cerrada) → cubría 521–571, mordiendo el botón y la imagen; con la fila avanzada abierta (JB≈98) cubría 521–619 → el botón (567–610) quedaba **entero detrás de la barra**. Es exactamente lo que muestran las capturas 2 y 3.
+- **Después:** el ancla es el bloque del carrusel (≈283–640 px CSS en las capturas). Encima: `283 − 50 − 6 = 227` < límite seguro `UI` (≈274, bajo la barra de herramientas) → no cabe. Debajo: `640 + 6 = 646`, y con la fila abierta `640 + 6 + 98 = 744` ≤ `844 − 60 − 4` (alto útil sobre la navegación inferior) → **cabe debajo del bloque, con 0 px de solape con su contenido en ambos estados de la barra**. El botón «⋯» vuelve a llamar a `OA()` al abrirse, así que la barra se reposiciona con su nueva altura y el hueco de 6 px se mantiene.
+- **Ancho:** con `BW` medido (≤374 px en ese teléfono por la regla 7), `left` queda entre 4 y `390 − BW − 4`: la barra entera vive dentro de la pantalla, alineada al bloque.
+- **Carrusel:** con la entrada overlay a la altura de la foto, el botón de la diapositiva queda dentro de la foto; la banda de controles (en flujo, `z-index:8`, 14 px de separación) ya no comparte espacio con ningún contenido de la diapositiva, ni en vista pública ni en edición (la capa de edición tiene `z-index:45`, por encima, pero ya no pinta la barra sobre el bloque).
+
+### Verificación
+- `node --check` del script principal y del de notificaciones **tras** los cambios: OK. Los 3 bloques JSON del archivo siguen parseando.
+- Los dos parches están delimitados con `/* FIX toki (pulido UI): … */` (contador `FIX toki`: 6 → 8) y el delta total es de **+1,807 bytes**.
+- **No** hubo prueba en navegador (no hay Chromium en esta máquina): queda para el dueño recargar el editor en su teléfono y confirmar (a) un carrusel con módulo y presentación overlay en vista pública, y (b) seleccionar el botón de una diapositiva en modo edición — la barra debe aparecer debajo del bloque (o encima, si hay sitio) sin tapar nada.

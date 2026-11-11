@@ -78,15 +78,8 @@
     }
   }
 
-  function controls(label, escape) {
-    return `<div class="carousel-controls" data-carousel-controls hidden>
-      <div class="carousel-progress" data-carousel-pagination aria-label="Elegir imagen"></div>
-      <span class="carousel-counter" data-carousel-counter aria-live="off">1 / 1</span>
-      <button type="button" data-carousel-prev aria-label="Imagen anterior de ${escape(label)}">‹</button>
-      <button type="button" data-carousel-pause aria-label="Pausar carrusel" aria-pressed="false">Ⅱ</button>
-      <button type="button" data-carousel-next aria-label="Imagen siguiente de ${escape(label)}">›</button>
-    </div>`;
-  }
+  // Keep the embedded renderer's hook without adding a controls strip.
+  function controls() { return ''; }
 
   function renderBlocks(blocks, options, deps) {
     const {escape: esc, image, icon, link, safeLink, text, snapshot, edit, caption} = deps;
@@ -222,7 +215,7 @@
         carousel.dispatchEvent(new CustomEvent('balcon:slide-change',{bubbles:true}));
       }
       const updatePause=()=>{if(pause){pause.innerHTML=userPaused?'<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="m7 4 8 6-8 6z" fill="currentColor"/></svg>':'<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 4v12M13 4v12" stroke="currentColor" stroke-width="1.5"/></svg>';pause.setAttribute('aria-pressed',String(userPaused));pause.setAttribute('aria-label',userPaused?'Reproducir carrusel':'Pausar carrusel');}};
-      if(controls)controls.hidden=slides.length<2;
+      if(controls)controls.hidden=true;
       show(Math.min(slides.length-1,activeSlides.get(carousel.dataset.carousel) || 0));updatePause();schedule();
       on(carousel,'click',event=>{
         const button=event.target.closest('[data-carousel-prev],[data-carousel-next],[data-carousel-pause],[data-carousel-go]');
@@ -233,7 +226,7 @@
       });
       on(carousel,'keydown',event=>{
         if(event.target.closest('[data-carousel]')!==carousel || !['ArrowLeft','ArrowRight'].includes(event.key) || event.target.matches('input,textarea,select,[contenteditable]') || document.body.classList.contains('visual-editing'))return;
-        event.preventDefault();show(current+(event.key==='ArrowRight'?1:-1));schedule();
+        event.preventDefault();event.stopPropagation();show(current+(event.key==='ArrowRight'?1:-1));schedule();
       });
       on(carousel,'pointerenter',event=>{if(event.pointerType==='mouse'){hover=true;schedule();}});
       on(carousel,'pointerleave',()=>{hover=false;schedule();});

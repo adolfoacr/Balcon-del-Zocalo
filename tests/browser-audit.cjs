@@ -74,22 +74,22 @@ let base;
    }
   }
  });
- await check('Sister companies template, slide buttons, keyboard, and mobile layout',async()=>{
+ await check('Sister companies template has no controls strip and keeps keyboard navigation',async()=>{
   await page.setViewportSize({width:1440,height:1000});await ready(page,'section-fbc97490-7ba');
   assert.equal(await page.locator('.sister-page').count(),1);
   const carousel=page.locator('.sister-hero [data-carousel]');
   assert.equal(await carousel.locator('[data-carousel-slide]:visible').count(),1);
-  await carousel.locator('[data-carousel-next]').click();assert.equal(await carousel.getAttribute('data-active-slide'),'1');
-  await carousel.locator('[data-carousel-go="2"]').click();assert.equal(await carousel.getAttribute('data-active-slide'),'2');
-  await carousel.locator('[data-carousel-prev]').focus();await page.keyboard.press('ArrowLeft');assert.equal(await carousel.getAttribute('data-active-slide'),'1');
-  assert.equal(await carousel.locator('[data-carousel-pause]').getAttribute('aria-pressed'),'true');
-  await carousel.locator('[data-carousel-pause]').click();assert.equal(await carousel.locator('[data-carousel-pause]').getAttribute('aria-pressed'),'false');
-  await carousel.locator('[data-carousel-go="0"]').click();
+  assert.equal(await page.locator('[data-carousel-controls]:visible,.carousel-controls:visible').count(),0);
+  const step=async key=>{await carousel.locator('[data-carousel-slide]:visible .carousel-media').focus();await page.keyboard.press(key);};
+  await step('ArrowRight');assert.equal(await carousel.getAttribute('data-active-slide'),'1');
+  await step('ArrowRight');assert.equal(await carousel.getAttribute('data-active-slide'),'2');
+  await step('ArrowLeft');assert.equal(await carousel.getAttribute('data-active-slide'),'1');
+  await step('ArrowLeft');
+  await carousel.locator('[data-carousel-slide]:visible .carousel-media').evaluate(el=>el.blur());
   await page.screenshot({path:path.join(artifacts,'empresas-hermanas-desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>{const link=document.querySelector('.navigation [aria-current="page"]');if(!link)return false;const rect=link.getBoundingClientRect();return rect.left>=0 && rect.right<=innerWidth+1;});
-  const tops=await carousel.locator('[data-carousel-prev],[data-carousel-next],[data-carousel-pause]').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));
-  assert.ok(Math.max(...tops)-Math.min(...tops)<2,'Mobile carousel controls share a row');
+  assert.equal(await page.locator('[data-carousel-controls]:visible,.carousel-controls:visible').count(),0);
   await page.screenshot({path:path.join(artifacts,'empresas-hermanas-mobile.png'),fullPage:true});
   assert.ok(await page.locator('.sister-spaces .custom-block').count()>=3);
  });
@@ -159,12 +159,13 @@ let base;
   await editor.reload({waitUntil:'networkidle'});assert.deepEqual(await readImage(),expected);
   await openBlock('image');assert.equal(await drawer.locator('[name="imageWidth"]').inputValue(),'60');await drawer.locator('[data-cms-close]').first().click();
  });
- await check('Minimum module height and long carousel captions do not cover controls',async()=>{
+ await check('Minimum module height contains long carousel captions without a controls strip',async()=>{
   await openBlock('carousel');await drawer.locator('[name="moduleHeight"]').fill('420');await submit();
   const block=editor.locator('[data-layout-key="block-carousel"]');
-  const rects=await block.evaluate(el=>{const copy=el.querySelector('.carousel-entry:not([hidden]) .carousel-copy').getBoundingClientRect(),controls=el.querySelector('[data-carousel-controls]').getBoundingClientRect();return {bottom:copy.bottom,top:controls.top,height:el.getBoundingClientRect().height};});
-  assert.ok(rects.height>=420);assert.ok(rects.top>=rects.bottom-1,JSON.stringify(rects));
-  await block.locator('[data-carousel-next]').click();assert.equal(await block.locator('[data-carousel-slide]:visible img').evaluate(el=>getComputedStyle(el).objectFit),'contain');
+  const rects=await block.evaluate(el=>{const copy=el.querySelector('.carousel-entry:not([hidden]) .carousel-copy').getBoundingClientRect(),bounds=el.getBoundingClientRect();return {bottom:copy.bottom,limit:bounds.bottom,height:bounds.height};});
+  assert.ok(rects.height>=420);assert.ok(rects.limit>=rects.bottom-1,JSON.stringify(rects));
+  await editor.locator('[data-layout-toggle]').click();await block.locator('[data-carousel-slide]:visible .carousel-media').focus();await editor.keyboard.press('ArrowRight');
+  assert.equal(await block.locator('[data-carousel-slide]:visible img').evaluate(el=>getComputedStyle(el).objectFit),'contain');
   assert.equal(await block.locator('[data-carousel-slide]:visible img').evaluate(el=>getComputedStyle(el).transform),'matrix(1.5, 0, 0, 1.5, 0, 0)');
  });
  await check('Visual element editor applies text, size, alignment, colors, and icon removal',async()=>{

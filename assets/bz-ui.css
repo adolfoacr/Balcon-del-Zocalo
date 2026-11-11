@@ -31,7 +31,8 @@ main :is(h1,h2,h3,p,a,button) { overflow-wrap:anywhere; }
 .block-copy p { margin-top:16px; white-space:pre-line; }
 .block-copy .button,.carousel-copy .button { margin-top:24px; align-self:flex-start; }
 
-.custom-block.module-framed { height:auto; min-height:var(--bz-module-height,0px)!important; overflow:visible; }
+.custom-block.module-framed { width:100%; height:auto; min-height:var(--bz-module-height,0px)!important; overflow:visible; }
+.custom-block>.block-carousel { width:100%; min-width:0; }
 .custom-block.module-framed>.block-image { flex:0 1 auto; max-height:none; }
 .custom-block.module-framed>.block-carousel { height:auto; min-height:0; }
 .custom-block .block-carousel-track { height:auto!important; min-height:0; }
@@ -131,3 +132,6 @@ main :is(h1,h2,h3,p,a,button) { overflow-wrap:anywhere; }
 @media(prefers-reduced-motion:reduce) {
   .sister-page * { scroll-behavior:auto; animation:none!important; transition:none!important; }
 }
+
+/* Also collapse controls retained in older saved sections and visual copies. */
+.carousel-controls,[data-carousel-controls] { display:none!important; }

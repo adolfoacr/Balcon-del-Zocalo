@@ -12,3 +12,5 @@ BZ_PLAYWRIGHT_MODULE=playwright-core BZ_CHROMIUM=/usr/bin/chromium node tests/br
 `BZ_PLAYWRIGHT_MODULE` también acepta una ruta absoluta a la instalación de Playwright del entorno. `BZ_AUDIT_ARTIFACTS` cambia el directorio de capturas y resultados; el valor predeterminado es `.audit-artifacts`, excluido de Git.
 
 Las pruebas cubren rutas, composición adaptable, ambos editores, los ocho tipos de bloque, fondos y bordes independientes, imágenes, borradores, creación/eliminación de contenido, plantillas, carruseles y el flujo de publicación con un servicio simulado.
+
+El lector de noticias se comprueba con `python3 -m unittest discover -s tests -p test_media_feed.py -v`. El flujo de GitHub Actions verifica también la lectura real del medio antes de integrar cambios en esta conexión.

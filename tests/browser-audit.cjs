@@ -11,6 +11,7 @@ fs.mkdirSync(artifacts,{recursive:true});
 const config=JSON.parse(fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<script[^>]*id="service-config"[^>]*>(.*?)<\/script>/s)[1]);
 const user={id:'00000000-0000-4000-8000-000000000001',email:'local-audit@example.test',user_metadata:{full_name:'Auditoría local'}};
 const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+const sampleFeed={version:1,sourceURL:'https://www.culinariamexicana.com.mx/',sourceName:'Culinaria Mexicana',updatedAt:'2026-11-11T00:00:00Z',items:[1,2,3].map(index=>({id:'external-test-'+index,title:'Noticia de prueba '+index,url:'https://www.culinariamexicana.com.mx/nota-de-prueba-'+index+'/',excerpt:'Resumen de prueba del medio.',image:'',publishedAt:'2026-11-10T12:00:00Z'}))};
 const server=http.createServer((req,res)=>{
  const requested=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
  if(requested!==root && !requested.startsWith(root+path.sep)){res.writeHead(403).end();return;}
@@ -28,7 +29,10 @@ async function ready(page,route='noticias') {
 async function mock(context,state) {
  await context.route('**/*',async route=>{
   const request=route.request(), url=new URL(request.url());
-  if(url.origin===base)return route.continue();
+  if(url.origin===base){
+   if(url.pathname==='/data/media-news.json')return route.fulfill({contentType:'application/json',body:JSON.stringify(state.feed || sampleFeed)});
+   return route.continue();
+  }
   if(url.origin!==config.url) {if(url.protocol==='data:')return route.continue();return route.abort();}
   const pathname=url.pathname;
   let response=[];
@@ -93,6 +97,16 @@ let base;
   await page.screenshot({path:path.join(artifacts,'empresas-hermanas-mobile.png'),fullPage:true});
   assert.ok(await page.locator('.sister-spaces .custom-block').count()>=3);
  });
+ await check('External news load original links and rotate automatically without controls',async()=>{
+  await page.emulateMedia({reducedMotion:'no-preference'});await ready(page,'novedades');
+  const carousel=page.locator('.media-feed-carousel');await carousel.waitFor();
+  assert.equal(await carousel.locator('[data-carousel-slide]').count(),3);
+  assert.equal(await carousel.getAttribute('data-interval'),'6000');
+  assert.equal(await carousel.locator('.media-feed-slide:visible h3 a').getAttribute('href'),sampleFeed.items[0].url);
+  assert.equal(await page.locator('[data-carousel-controls]:visible,.carousel-controls:visible').count(),0);
+  await page.waitForFunction(()=>document.querySelector('.media-feed-carousel')?.dataset.activeSlide==='1',{},{timeout:9000});
+  await page.emulateMedia({reducedMotion:'reduce'});
+ });
 
  const make=(id,type,extra={})=>({id,type,title:'Título '+id,text:'Texto del elemento',image:'',icon:'none',slides:[],...extra});
  const fixture=structuredClone(initial);
@@ -120,6 +134,19 @@ let base;
  const ensureEditing=async()=>{if(!await editor.evaluate(()=>document.body.classList.contains('visual-editing')))await editor.locator('[data-layout-toggle]').click();};
  const openBlock=async id=>{await ensureEditing();await editor.locator(`[data-edit-panel="blocks"][data-edit-id="${id}"]`).click();await drawer.waitFor({state:'visible'});};
  const submit=async()=>{await drawer.locator('button[type="submit"]').click();await drawer.waitFor({state:'hidden'});};
+ await check('News source URL and rotation interval can be edited and automatic news disabled',async()=>{
+  await ready(editor,'novedades');await ensureEditing();
+  await editor.locator('.media-feed-actions [data-edit-panel="newsPage"]').click();
+  assert.equal(await drawer.locator('[name="newsPage.mediaSourceURL"]').inputValue(),sampleFeed.sourceURL);
+  await drawer.locator('[name="newsPage.mediaInterval"]').fill('3');await submit();
+  await editor.waitForFunction(()=>document.querySelector('.media-feed-carousel')?.dataset.interval==='3000');
+  await editor.locator('.media-feed-actions [data-edit-panel="newsPage"]').click();
+  await drawer.locator('[name="newsPage.mediaEnabled"]').uncheck();await submit();
+  assert.equal(await editor.locator('[data-media-feed]').count(),0);
+  await editor.locator('.media-feed-actions [data-edit-panel="newsPage"]').click();
+  await drawer.locator('[name="newsPage.mediaEnabled"]').check();await submit();await editor.locator('.media-feed-carousel').waitFor();
+  await ready(editor,'audit');
+ });
  await check('Independent background and border controls on all eight block types',async()=>{
   for(const id of ['banner','image','text','title','button','shortcut','group','carousel']) {
    await openBlock(id);

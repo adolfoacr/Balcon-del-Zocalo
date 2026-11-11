@@ -54,7 +54,7 @@ Una foto cuya fuente ya tiene pocos píxeles no recupera detalle mediante CSS. P
 
 ## Verificación realizada
 
-`tests/browser-audit.cjs` ejecuta **19 grupos de comprobaciones**. Incluyen:
+`tests/browser-audit.cjs` ejecuta **21 grupos de comprobaciones**. Incluyen:
 
 - Las nueve rutas principales/de cuenta y la sección de empresas a 320, 390, 768, 1100 y 1440 px; sin desbordamiento horizontal de la página.
 - Fondo y borde en los ocho tipos de bloque: banner, imagen, texto, título, botón, acceso directo, grupo y carrusel. También se prueba conservar el borde al quitar el fondo.
@@ -67,6 +67,8 @@ Una foto cuya fuente ya tiene pocos píxeles no recupera detalle mediante CSS. P
 - Carruseles anidados, controles ausentes y desconexión de eventos al desmontar.
 - Error de publicación, conservación del borrador, reintento sin repetir cargas y lectura del resultado en un contexto de visitante nuevo.
 - Ausencia de errores de JavaScript sin capturar durante las comprobaciones.
+
+Se añadió además la integración de noticias automáticas del medio, con 7 pruebas del lector de RSS/Atom/WordPress. Su configuración y mantenimiento se describen en [NOTICIAS-DEL-MEDIO.md](NOTICIAS-DEL-MEDIO.md).
 
 También pasan la comprobación de sintaxis de los scripts y `git diff --check`. Las instrucciones reproducibles están en [tests/README.md](tests/README.md).
 

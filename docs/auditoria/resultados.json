@@ -1,8 +1,10 @@
 {
-  "passed": 19,
+  "passed": 21,
   "checks": [
     "Public routes at desktop, tablet, and phone widths",
     "Sister companies template has no controls strip and keeps keyboard navigation",
+    "External news load original links and rotate automatically without controls",
+    "News source URL and rotation interval can be edited and automatic news disabled",
     "Independent background and border controls on all eight block types",
     "Legacy plain blocks can regain a background and border",
     "Saving text preserves automatic image fit and banner arrangement",

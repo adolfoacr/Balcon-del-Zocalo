@@ -11,6 +11,8 @@ En **Comparte tu trabajo → Investigación y desarrollo** aparecen las propuest
 
 Cada ejemplo tiene propósito, método, pruebas, resultados ilustrativos y siguientes pasos. La etiqueta **Demostración** y la indicación de autor ficticio distinguen los ejemplos de las participaciones reales. No se crearon cuentas ni se enviaron notificaciones de propuestas ficticias. Los ejemplos no afirman que sus experimentos hayan sido ejecutados.
 
+Los cuatro proyectos tienen imágenes propias de 1536 × 1024 píxeles, alojadas con la aplicación. Se ven en las tarjetas y dentro de la ficha completa, donde conservan su proporción. Son imágenes ilustrativas generadas para estas demostraciones.
+
 Pulsa **Leer proyecto completo** para desplegar la ficha. Los filtros separan investigaciones y desarrollos.
 
 ## Eliminar de la galería

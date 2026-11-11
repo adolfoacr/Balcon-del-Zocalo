@@ -16,7 +16,7 @@ const server=http.createServer((req,res)=>{
  const requested=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
  if(requested!==root && !requested.startsWith(root+path.sep)){res.writeHead(403).end();return;}
  const file=requested===root ? path.join(root,'index.html') : requested;
- fs.readFile(file,(error,data)=>{if(error){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':'text/html');res.end(data);});
+ fs.readFile(file,(error,data)=>{if(error){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':file.endsWith('.webp')?'image/webp':'text/html');res.end(data);});
 });
 const results=[];
 let browser;
@@ -464,7 +464,9 @@ let base;
   assert.match(await gp.locator('#lab-count').innerText(),/1 publicación.*4 ejemplos/);
   for(const item of await gp.locator('.work-demo').all()){
    assert.match(await item.innerText(),/Demostración/);assert.match(await item.innerText(),/autor ficticio/);
+   const photo=item.locator('.lab-card-media>.work-project-photo');await photo.scrollIntoViewIfNeeded();await photo.evaluate(img=>img.decode());assert.equal(await photo.evaluate(img=>img.naturalWidth),1536);
    await item.locator('summary').click();assert.equal(await item.locator('.work-reading-section').count(),6);
+   const detailPhoto=item.locator('.work-project-figure img');await detailPhoto.scrollIntoViewIfNeeded();await detailPhoto.evaluate(img=>img.decode());assert.equal(await detailPhoto.evaluate(img=>img.naturalHeight),1024);
    assert.match(await item.locator('details').innerText(),/fictici/);await item.locator('summary').click();
   }
   await gp.locator('[data-work-id="10000000-0000-4000-8000-000000000001"] summary').click();

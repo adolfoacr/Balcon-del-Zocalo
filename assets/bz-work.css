@@ -1,9 +1,9 @@
-.work-ingredient-art { position:absolute; inset:0; margin:auto; width:72%; height:80%; stroke:var(--work-art-color,var(--gold)); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.work-demo .lab-card-media { background:radial-gradient(ellipse at 50% 60%,var(--work-art-glow,#ad8b3026),transparent 70%),var(--soft); }
-.work-demo[data-demo-topic="stems"] { --work-art-color:#b4c49a; --work-art-glow:#71933d30; }
-.work-demo[data-demo-topic="seeds"] { --work-art-color:#d3b594; --work-art-glow:#b87b3530; }
-.work-demo[data-demo-topic="citrus"] { --work-art-color:#e3bc77; --work-art-glow:#ce891d30; }
-.work-demo[data-demo-topic="bread"] { --work-art-color:#d8bb8f; --work-art-glow:#b5763430; }
+.work-demo .lab-card-media { height:clamp(230px,24vw,340px); background:var(--soft); }
+.work-demo .lab-card-media>.work-project-photo { width:100%; height:100%; object-fit:cover; object-position:center; }
+.work-demo .lab-index { padding:5px 8px; background:#111a; border-radius:3px; }
+.work-project-figure { margin:20px 0 28px; }
+.work-project-figure .work-project-photo { display:block; width:100%; height:auto; max-width:100%; }
+.work-project-figure figcaption { margin-top:8px; color:var(--muted); font-size:12px; line-height:1.5; }
 .work-reading-section { margin:24px 0; }
 .work-reading-section h4 { margin-bottom:10px; color:var(--ink); font-size:16px; }
 .work-reading-section p { line-height:1.7; }

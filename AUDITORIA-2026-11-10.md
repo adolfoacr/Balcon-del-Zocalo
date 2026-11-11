@@ -4,6 +4,8 @@ Fecha: 10 de noviembre de 2026, Ciudad de México. Base revisada: `a5a45d4` de `
 
 Actualización solicitada por el dueño: los carruseles se muestran sin franja inferior, indicadores numerados, contador ni botones. También se ocultan y colapsan los controles conservados en secciones y copias antiguas. Se mantienen el cambio automático, el teclado y el gesto horizontal.
 
+La reserva de Salón Central y Taco Tasting Room permanece fija durante las tres fotos; su color es editable. La duplicación conserva el conjunto, incluidos los textos y botones dibujados encima. Se retiró el encabezado automático de espacios. Los formularios muestran primero los campos esenciales; las recetas tienen seis campos básicos. La guía de uso está en [Edición sencilla](EDICION-SENCILLA.md).
+
 Se revisaron el sitio, el editor de bloques, el editor visual, las plantillas, el guardado local, el cliente de publicación y los límites declarados en el SQL. Las reparaciones se verificaron en Chromium contra el código real de la aplicación. Los servicios de cuenta, biblioteca y publicación se simularon localmente: ninguna prueba escribió en la base de datos real.
 
 ## Hallazgos y correcciones
@@ -54,7 +56,12 @@ Una foto cuya fuente ya tiene pocos píxeles no recupera detalle mediante CSS. P
 
 ## Verificación realizada
 
-`tests/browser-audit.cjs` ejecuta **21 grupos de comprobaciones**. Incluyen:
+`tests/browser-audit.cjs` ejecuta **29 grupos de comprobaciones**. Incluyen:
+
+- Los seis campos principales de una receta y su ficha pública, sin datos técnicos adicionales.
+- Una reserva compartida y persistente en las tres fotos; edición de texto, enlace y color.
+- Duplicación independiente de carruseles, estilos, posiciones y cuadros superpuestos; eliminación de la copia con sus cuadros.
+- Dibujo, cancelación y movimiento de textos/botones, persistencia en el borrador y adaptación al móvil.
 
 - Las nueve rutas principales/de cuenta y la sección de empresas a 320, 390, 768, 1100 y 1440 px; sin desbordamiento horizontal de la página.
 - Fondo y borde en los ocho tipos de bloque: banner, imagen, texto, título, botón, acceso directo, grupo y carrusel. También se prueba conservar el borde al quitar el fondo.

@@ -81,6 +81,16 @@
   // Keep the embedded renderer's hook without adding a controls strip.
   function controls() { return ''; }
 
+  function contentButton(block,label,url,deps) {
+    if(!label)return '';
+    const style=block.buttonStyle || (block.carouselDesign==='immersive' || block.type==='button'?'solid':'outline');
+    const rules=[];
+    if(color(block.buttonColor))rules.push(`--bz-button-color:${block.buttonColor}`);
+    if(color(block.buttonTextColor))rules.push(`--bz-button-text:${block.buttonTextColor}`);
+    const attrs=`class="button bz-content-button bz-button-${style}" data-button-owner="${deps.escape(block.id)}"${rules.length?` style="${rules.join(';')}"`:''}`;
+    return deps.safeLink(url,'')?`<a ${attrs} ${deps.link(url)}>${deps.escape(label)} ${deps.icon('link','arrow-icon')}</a>`:`<span ${attrs} aria-disabled="true">${deps.escape(label)}</span>`;
+  }
+
   function renderBlocks(blocks, options, deps) {
     const {escape: esc, image, icon, link, safeLink, text, snapshot, edit, caption} = deps;
     return (blocks || []).map(block => {
@@ -88,12 +98,14 @@
       const alignment = ['left','center','right'].includes(block.imageAlign) ? block.imageAlign : 'center';
       const attrs = `data-layout-key="block-${esc(block.id)}" data-module-width="${number(block.moduleWidth,0,100) || 0}" data-module-height="${number(block.moduleHeight,0,2000) || 0}" data-module-offset="${number(block.moduleOffset,0,100) || 0}" data-module-screen="${esc(block.moduleScreen || '')}"${surfaceAttributes(block)}`;
       const pencil = options.editing ? edit('blocks', block.id) : '';
-      const featured = options.featured ? ' sister-hero' : '';
+      const featured = `${options.featured ? ' sister-hero' : ''}${options.featured || block.carouselDesign==='immersive'?' carousel-design-immersive':''}${block.floating?' drawn-element':''}`;
       if (type === 'group') return `<article class="custom-block type-group editable-block${featured}" ${attrs} data-snapshot-group aria-label="${esc(block.title)}">${snapshot(block.snapshot,0,block.id)}${pencil}</article>`;
       const slides = Array.isArray(block.slides) ? block.slides : [];
+      const shared=(block.textMode || 'shared')==='shared';
+      const copyMarkup=(copy,slide={},index=0)=>`<div class="carousel-copy"${shared?` data-bz-edit-path="article-block-${esc(block.id)}.div-0.div-0.div-0.div-0"`:''}>${copy.eyebrow ? `<span class="eyebrow">${esc(copy.eyebrow)}</span>` : ''}${copy.title ? `<h2>${esc(copy.title)}</h2>` : ''}${copy.text ? `<p>${text(copy.text)}</p>` : ''}${contentButton(block,copy.buttonLabel,copy.buttonLink,deps)}${slide.dialogBody || slide.dialogTitle ? `<button type="button" class="text-link" data-carousel-detail="block" data-block-id="${esc(block.id)}" data-slide-index="${index}">Conocer el espacio ${icon('link')}</button>` : ''}</div>`;
       let media = '';
       if (type === 'carousel' && slides.length) {
-        media = `<div class="block-carousel carousel" data-carousel="carrusel ${esc(block.id)}" data-interval="${number(block.interval,2000,20000) || 5000}" data-autoplay="${block.autoplay !== false}" role="region" aria-roledescription="carrusel" aria-label="${esc(block.title || 'Fotografías')}"><div class="block-carousel-track">${slides.map((slide,index) => {
+        media = `<div class="block-carousel carousel${shared?' has-fixed-copy':''}${block.presentation==='overlay'?' is-overlay':''}" data-carousel="carrusel ${esc(block.id)}" data-interval="${number(block.interval,2000,20000) || 5000}" data-autoplay="${block.autoplay !== false}" role="region" aria-roledescription="carrusel" aria-label="${esc(block.title || 'Fotografías')}"><div class="block-carousel-track">${slides.map((slide,index) => {
           const copy = caption(slide,block,block.textMode);
           const presentation = block.presentation === 'overlay' ? 'overlay' : 'split';
           const align = ['left','center','right'].includes(slide.imageAlign) ? slide.imageAlign : 'left';
@@ -103,13 +115,13 @@
           }
           return `<div class="carousel-entry presentation-${presentation} image-${align}" data-carousel-info="block" data-block-id="${esc(block.id)}" data-slide-index="${index}" data-carousel-slide ${index ? 'hidden' : ''}>
             <button type="button" class="carousel-media" data-carousel-detail="block" data-block-id="${esc(block.id)}" data-slide-index="${index}" aria-label="Ver información de ${esc(copy.title || slide.alt || 'esta imagen')}"><img src="${esc(image(slide.image))}" alt="${esc(slide.alt || copy.title || '')}" loading="${options.featured && index === 0 ? 'eager' : 'lazy'}" ${options.featured && index === 0 ? 'fetchpriority="high"' : ''} style="${imageStyle(settings,true)}"><span class="image-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span></button>
-            <div class="carousel-copy">${copy.eyebrow ? `<span class="eyebrow">${esc(copy.eyebrow)}</span>` : ''}${copy.title ? `<h2>${esc(copy.title)}</h2>` : ''}${copy.text ? `<p>${text(copy.text)}</p>` : ''}${copy.buttonLabel && safeLink(copy.buttonLink,'') ? `<a class="button secondary" ${link(copy.buttonLink)}>${esc(copy.buttonLabel)} ${icon('link')}</a>` : ''}${slide.dialogBody || slide.dialogTitle ? `<button type="button" class="text-link" data-carousel-detail="block" data-block-id="${esc(block.id)}" data-slide-index="${index}">Conocer el espacio ${icon('link')}</button>` : ''}</div>
+            ${shared?'':copyMarkup(copy,slide,index)}
           </div>`;
-        }).join('')}</div>${controls(block.title || 'Fotografías',esc)}</div>`;
+        }).join('')}</div>${shared?copyMarkup(caption(slides[0],block,'shared')):''}${controls(block.title || 'Fotografías',esc)}</div>`;
       } else if (block.image && image(block.image)) {
         media = `<img class="block-image" src="${esc(image(block.image))}" alt="${esc(block.alt || block.title || '')}" loading="${options.featured ? 'eager' : 'lazy'}" style="${imageStyle(block,type === 'banner' && alignment === 'center')}">`;
       }
-      return `<article class="custom-block type-${type} image-${alignment} editable-block${featured}" ${attrs} data-text-mode="${block.textMode === 'individual' ? 'individual' : 'shared'}">${media}${type === 'carousel' && slides.length ? '' : `<div class="block-copy">${icon(block.icon)}${block.title ? `<h2>${esc(block.title)}</h2>` : ''}${block.text ? `<p>${text(block.text)}</p>` : ''}${block.buttonLabel && safeLink(block.link,'') ? `<a class="button secondary" ${link(block.link)}>${esc(block.buttonLabel)} ${icon('link','arrow-icon')}</a>` : ''}</div>`}${pencil}</article>`;
+      return `<article class="custom-block type-${type} image-${alignment} editable-block${featured}" ${attrs} data-text-mode="${block.textMode === 'individual' ? 'individual' : 'shared'}">${media}${type === 'carousel' && slides.length ? '' : `<div class="block-copy">${icon(block.icon)}${block.title ? `<h2>${esc(block.title)}</h2>` : ''}${block.text ? `<p>${text(block.text)}</p>` : ''}${contentButton(block,block.buttonLabel,block.link,deps)}</div>`}${pencil}${block.floating?'<button type="button" class="drawn-move-handle" aria-label="Mover este cuadro">Mover</button>':''}</article>`;
     }).join('');
   }
 
@@ -125,12 +137,12 @@
     const rest = blocks.filter((_,index) => index !== first);
     return `<div class="sister-page"><header class="sister-heading editable-block" data-layout-key="custom-heading"><span class="eyebrow">01 / Inmersiva</span><h1>${esc(page.title || 'Empresas hermanas')}</h1>${page.description ? `<p>${esc(page.description)}</p>` : ''}${options.editing ? edit('pages',page.id) : ''}</header>
       ${first >= 0 ? renderBlocks([blocks[first]],{...options,featured:true},deps) : page.image ? heading : ''}
-      ${rest.length ? `<section class="sister-spaces"><h2>${esc(page.spacesTitle || 'Espacios. Una misma búsqueda.')}</h2><div class="custom-blocks layout-grid">${renderBlocks(rest,options,deps)}</div></section>` : ''}</div>`;
+      ${rest.length ? `<section class="sister-spaces"><div class="custom-blocks layout-grid">${renderBlocks(rest,options,deps)}</div></section>` : ''}</div>`;
   }
 
   function sisterTemplate(id) {
     const block = (type,title,extra = {}) => ({id:id('block'),type,title,text:'',image:'',icon:'none',slides:[],...extra});
-    return {template:'sister-companies',title:'Empresas hermanas',eyebrow:'Empresas hermanas',description:'',layout:'list',spacesTitle:'Tres espacios. Una misma búsqueda.',blocks:[
+    return {template:'sister-companies',title:'Empresas hermanas',eyebrow:'Empresas hermanas',description:'',layout:'list',blocks:[
       block('carousel','Nuestros espacios',{presentation:'overlay',textMode:'individual',interval:6000,autoplay:true,borderMode:'none',slides:[
         {image:'@table',alt:'Balcón del Zócalo y el Centro Histórico',imageAlign:'left',imageFit:'cover',eyebrow:'Empresas hermanas',title:'Restaurante',text:'Una mesa, una vista, una nueva historia.',buttonLabel:'Conocer el espacio',buttonLink:'#noticias'},
         {image:'@chef-tasting',alt:'El trabajo en la cocina del Balcón',imageAlign:'left',imageFit:'cover',eyebrow:'Empresas hermanas',title:'Cocina',text:'El ingrediente como punto de partida.',buttonLabel:'Explorar el recetario',buttonLink:'#recetario'},
@@ -156,7 +168,7 @@
         if(hero){hero.presentation='overlay';hero.imageAlign='center';}
       }
     }
-    return site;
+    return window.BZEditor?window.BZEditor.prepareSite(site):site;
   }
 
   function mountCarousels(root, {activeSlides=new Map()} = {}, safeLink = value => value) {

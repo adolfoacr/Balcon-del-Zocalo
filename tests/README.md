@@ -13,4 +13,6 @@ BZ_PLAYWRIGHT_MODULE=playwright-core BZ_CHROMIUM=/usr/bin/chromium node tests/br
 
 Las pruebas cubren rutas, composición adaptable, ambos editores, los ocho tipos de bloque, fondos y bordes independientes, imágenes, borradores, creación/eliminación de contenido, plantillas, carruseles y el flujo de publicación con un servicio simulado.
 
+También verifican los seis campos principales de las recetas, una reserva fija durante las tres fotos de Salón Central y Taco Tasting Room, el color del botón, duplicación independiente con cuadros superpuestos, dibujo y movimiento de textos/botones y su adaptación al teléfono. El flujo `editor-live.yml` lee la configuración pública actual y comprueba en memoria que la migración conserve las tres fotos y muestre una sola reserva compartida.
+
 El lector de noticias se comprueba con `python3 -m unittest discover -s tests -p test_media_feed.py -v`. El flujo de GitHub Actions verifica también la lectura real del medio antes de integrar cambios en esta conexión.

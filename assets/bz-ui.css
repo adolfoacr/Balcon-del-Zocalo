@@ -85,7 +85,7 @@ main :is(h1,h2,h3,p,a,button) { overflow-wrap:anywhere; }
 .sister-page .sister-hero .carousel-copy p { font-family:var(--sister-serif); font-size:clamp(19px,2vw,27px); font-style:italic; opacity:1; line-height:1.4; }
 .sister-page .sister-hero .eyebrow { font-size:12px; letter-spacing:.2em; }
 .sister-page .button { border-radius:5px; }
-.sister-page .sister-hero .button { background:var(--gold); color:#14130f; border-color:var(--gold); min-width:160px; }
+.sister-page .sister-hero .button { min-width:160px; }
 .sister-page .sister-hero .carousel-controls { padding:14px clamp(24px,5vw,76px); border-top:0; background:#11110f; }
 .sister-spaces { padding:36px 0 20px; }
 .sister-spaces>h2 { font-family:var(--sister-serif); font-size:clamp(30px,3.3vw,46px); letter-spacing:-.025em; }
@@ -135,3 +135,34 @@ main :is(h1,h2,h3,p,a,button) { overflow-wrap:anywhere; }
 
 /* Also collapse controls retained in older saved sections and visual copies. */
 .carousel-controls,[data-carousel-controls] { display:none!important; }
+
+.bz-content-button { width:max-content; max-width:100%; min-height:46px; padding:12px 28px; border-radius:5px; gap:14px; font:inherit; font-size:13px; line-height:1.4; text-align:center; }
+.bz-content-button.bz-button-solid,.custom-block .block-copy>.bz-content-button.bz-button-solid { background:var(--bz-button-color,var(--gold)); color:var(--bz-button-text,#171611); border:1px solid var(--bz-button-color,var(--gold)); }
+.bz-content-button.bz-button-outline,.custom-block .block-copy>.bz-content-button.bz-button-outline { background:transparent; color:var(--bz-button-text,var(--bz-button-color,var(--gold))); border:1px solid var(--bz-button-color,var(--gold)); }
+.bz-content-button.bz-button-link,.custom-block .block-copy>.bz-content-button.bz-button-link { background:transparent; color:var(--bz-button-text,var(--bz-button-color,var(--gold))); border:0; padding-inline:0; }
+.custom-block .has-fixed-copy { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.custom-block .has-fixed-copy .carousel-entry { display:block; min-height:100%; }
+.custom-block .has-fixed-copy .carousel-entry::before { display:none; }
+.custom-block .has-fixed-copy:not(.is-overlay)>.carousel-copy { max-width:none; }
+.custom-block .has-fixed-copy.is-overlay { position:relative; isolation:isolate; display:grid; grid-template-columns:1fr; min-height:max(360px,var(--bz-module-height,0px)); }
+.custom-block .has-fixed-copy.is-overlay>.block-carousel-track { position:absolute; inset:0; z-index:-2; height:100%!important; width:100%; }
+.custom-block .has-fixed-copy.is-overlay .carousel-entry { height:100%; }
+.custom-block .has-fixed-copy.is-overlay .carousel-media { position:absolute; inset:0; height:100%; }
+.custom-block .has-fixed-copy.is-overlay::before { content:''; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,#0c0b09e8,#0c0b0966 60%,#0c0b0914); pointer-events:none; }
+.custom-block .has-fixed-copy.is-overlay>.carousel-copy { min-height:inherit; max-width:min(760px,90%); pointer-events:none; }
+.custom-block .has-fixed-copy.is-overlay>.carousel-copy :is(a,button) { pointer-events:auto; }
+.custom-block[data-bz-background="transparent"] .has-fixed-copy::before { background:none; }
+.custom-block[data-bz-background="solid"] .has-fixed-copy::before { background:linear-gradient(90deg,color-mix(in srgb,var(--bz-surface-color,var(--soft)) 92%,transparent),color-mix(in srgb,var(--bz-surface-color,var(--soft)) 30%,transparent)); }
+.carousel-design-immersive .has-fixed-copy.is-overlay { min-height:clamp(460px,39vw,650px); }
+.carousel-design-immersive .carousel-copy { max-width:min(840px,85%); padding:clamp(32px,5vw,76px); }
+.carousel-design-immersive .carousel-copy h2 { font-family:Georgia,'Times New Roman',serif; font-size:clamp(44px,5.7vw,88px); font-weight:400; line-height:1.06; letter-spacing:-.04em; }
+.carousel-design-immersive .bz-content-button { min-width:160px; }
+.sister-spaces { padding-top:24px; }
+.sister-spaces>.custom-blocks { margin-top:0; }
+@media(max-width:700px) {
+  .custom-block .has-fixed-copy { grid-template-columns:1fr; }
+  .custom-block .has-fixed-copy.is-overlay>.carousel-copy { max-width:100%; }
+  .carousel-design-immersive .has-fixed-copy.is-overlay { min-height:470px; }
+  .carousel-design-immersive .carousel-copy { padding:40px 24px; }
+  .carousel-design-immersive .carousel-copy h2 { font-size:clamp(40px,11vw,64px); }
+}

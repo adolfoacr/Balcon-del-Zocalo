@@ -17,4 +17,23 @@ const fs=require('node:fs');
  fs.writeFileSync('editor-live-summary.json',JSON.stringify(result,null,2));
  console.log(JSON.stringify(result,null,2));
  if(!result.length)throw new Error('No published Salon Central or Taco Tasting Room found');
+ if(fs.existsSync('assets/bz-editor.js')){
+  const vm=require('node:vm'),assert=require('node:assert/strict');
+  const sandbox={window:{},document:{addEventListener(){}},addEventListener(){},structuredClone,innerWidth:1440};vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync('assets/bz-editor.js','utf8'),sandbox);
+  vm.runInContext(fs.readFileSync('assets/bz-ui.js','utf8'),sandbox);
+  const fixed=sandbox.window.BZEditor.prepareSite(structuredClone(site));
+  for(const record of result){
+   const block=fixed.pages.find(page=>page.id===record.page).blocks.find(block=>block.id===record.id);
+   assert.equal(block.textMode,'shared');assert.equal(block.carouselDesign,'immersive');assert.equal(block.buttonStyle,'solid');assert.ok(block.buttonLabel);assert.ok(block.link);
+   assert.equal(block.slides.length,record.slides.length);assert.ok(block.slides.every(slide=>slide.imageFit==='cover'));
+   const html=sandbox.window.BZUI.renderBlocks([block],{}, {escape:String,image:String,icon:()=>'',link:url=>'href="'+url+'"',safeLink:value=>value,text:String,snapshot:()=>'',edit:()=>'',caption:(_,block)=>({title:block.title,text:block.text,eyebrow:block.eyebrow,buttonLabel:block.buttonLabel,buttonLink:block.link})});
+   assert.equal((html.match(/class="carousel-copy"/g)||[]).length,1);
+   assert.equal((html.match(/data-button-owner=/g)||[]).length,1);
+   for(const [key,value] of Object.entries(fixed.elementOverrides||{}))if(key.includes('block-'+block.id)&&/\.a-0$/.test(key)){assert.notEqual(value.removed,true);assert.equal(value.moduleWidth,undefined);assert.equal(value.backgroundMode,undefined);}
+   console.log('MODEL-CHECK-PASS: '+block.title+'; una reserva fija, diseño reutilizable y sin ajustes antiguos que oculten el botón.');
+  }
+  const before=JSON.stringify(fixed);sandbox.window.BZEditor.prepareSite(fixed);
+  assert.equal(JSON.stringify(fixed),before,'Normalizar de nuevo conserva las ediciones posteriores');
+ }
 })().catch(error=>{console.error(error.message);process.exitCode=1});

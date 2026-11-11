@@ -125,6 +125,12 @@ let base;
   ]})
  ]});
  fixture.navigation.push({id:'audit',label:'Pruebas',visible:true,icon:'none'});
+ const business=(id,title)=>make(id,'carousel',{title,text:'',textMode:'shared',presentation:'overlay',buttonLabel:'RESERVA',link:'https://example.com/'+id,slides:[{image:'@table',alt:'Foto uno',buttonLabel:''},{image:'@chef',alt:'Foto dos',buttonLabel:''},{image:'@jars',alt:'Foto tres',buttonLabel:''}],interval:6000,autoplay:false});
+ fixture.pages.push({id:'businesses',title:'Empresas hermanas',template:'sister-companies',layout:'list',spacesTitle:'Espacios. Una misma búsqueda.',blocks:[business('salon-test','SALÓN CENTRAL'),business('taco-test','TACO TASTING ROOM')]});
+ fixture.navigation.push({id:'businesses',label:'Empresas de prueba',visible:true,icon:'none'});
+ const salonButtonKey='page-businesses:article-block-salon-test.div-0.div-0.div-0.div-0.a-0';
+ fixture.elementOverrides[salonButtonKey]={removed:true,moduleWidth:100,moduleHeight:80,backgroundMode:'transparent',lockAppearance:{fontFamily:'Questrial',fontSize:'13px'}};
+ fixture.elementOverrides['page-businesses:article-block-taco-test.div-0.div-0.div-0.div-0.a-0']={moduleWidth:100,moduleHeight:80,backgroundMode:'transparent',backgroundColor:'#c7ac72'};
  // An older visual edit must not silently override a later edit in the block form.
  fixture.elementOverrides['page-audit:article-block-banner']={backgroundMode:'solid',backgroundColor:'#442211',borderMode:'none'};
  const state={document:fixture,revision:1};
@@ -132,7 +138,8 @@ let base;
  await ready(editor,'audit');
  const drawer=editor.locator('#cms-editor');
  const ensureEditing=async()=>{if(!await editor.evaluate(()=>document.body.classList.contains('visual-editing')))await editor.locator('[data-layout-toggle]').click();};
- const openBlock=async id=>{await ensureEditing();await editor.locator(`[data-edit-panel="blocks"][data-edit-id="${id}"]`).click();await drawer.waitFor({state:'visible'});};
+ const expandAdvanced=async()=>drawer.locator('details').evaluateAll(details=>details.forEach(detail=>detail.open=true));
+ const openBlock=async id=>{await ensureEditing();await editor.locator(`[data-edit-panel="blocks"][data-edit-id="${id}"]`).click();await drawer.waitFor({state:'visible'});await expandAdvanced();};
  const submit=async()=>{await drawer.locator('button[type="submit"]').click();await drawer.waitFor({state:'hidden'});};
  await check('News source URL and rotation interval can be edited and automatic news disabled',async()=>{
   await ready(editor,'novedades');await ensureEditing();
@@ -146,6 +153,141 @@ let base;
   await editor.locator('.media-feed-actions [data-edit-panel="newsPage"]').click();
   await drawer.locator('[name="newsPage.mediaEnabled"]').check();await submit();await editor.locator('.media-feed-carousel').waitFor();
   await ready(editor,'audit');
+ });
+ await check('Salon and Taco share the immersive design and a single fixed reservation button',async()=>{
+  await ready(editor,'businesses');
+  assert.equal(await editor.locator('main').innerText().then(text=>text.includes('Una misma búsqueda')),false);
+  let reservationColor;
+  for(const id of ['salon-test','taco-test']){
+   const block=editor.locator(`[data-layout-key="block-${id}"]`),button=block.locator('[data-button-owner]'),carousel=block.locator('[data-carousel]');
+   assert.equal(await block.getAttribute('class').then(value=>value.includes('carousel-design-immersive')),true);
+   assert.equal(await button.count(),1);assert.equal(await button.isVisible(),true);
+   const position=()=>button.evaluate(el=>{const rect=el.getBoundingClientRect(),parent=el.closest('.custom-block').getBoundingClientRect();return {x:rect.left-parent.left,y:rect.top-parent.top};});
+   const start=await position();await button.evaluate(el=>window.reservationReference=el);
+   for(let i=0;i<3;i++){
+    await carousel.locator('[data-carousel-slide]:visible .carousel-media').focus();await editor.keyboard.press('ArrowRight');
+    assert.equal(await button.isVisible(),true);assert.equal(await button.evaluate(el=>el===window.reservationReference),true);
+    const rect=await position();assert.ok(Math.abs(rect.x-start.x)<1&&Math.abs(rect.y-start.y)<1,JSON.stringify({start,rect}));
+   }
+   const shade=await button.evaluate(el=>getComputedStyle(el).backgroundColor);if(reservationColor)assert.equal(shade,reservationColor);else reservationColor=shade;
+  }
+ });
+ await check('Editing a reservation shows only its label, link and color and applies to every photo',async()=>{
+  await ensureEditing();await editor.locator('[data-layout-key="block-taco-test"] [data-button-owner]').click();
+  await editor.locator('[data-layout-edit]:visible').click();await drawer.waitFor({state:'visible'});
+  assert.equal(await drawer.locator('.cms-primary > .cms-field').count(),3);
+  await drawer.locator('[name="buttonLabel"]').fill('Reservar mesa');
+  await drawer.locator('[name="buttonColor"]').fill('#dfb14c');await drawer.locator('[name="buttonColor"]').dispatchEvent('input');await submit();
+  const button=editor.locator('[data-layout-key="block-taco-test"] [data-button-owner]');
+  assert.match(await button.innerText(),/Reservar mesa/);assert.equal(await button.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(223, 177, 76)');
+ });
+ await check('Duplicating a carousel preserves all slides, shared button and appearance',async()=>{
+  await openBlock('taco-test');
+  const original=await editor.evaluate(()=>structuredClone(window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.id==='taco-test')));
+  await drawer.locator('[data-editor-duplicate]').click();await drawer.waitFor({state:'hidden'});
+  const copied=await editor.evaluate(()=>structuredClone(window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks[2]));
+  assert.notEqual(copied.id,original.id);delete copied.id;delete original.id;assert.deepEqual(copied,original);
+  assert.equal(await editor.locator('.carousel-design-immersive').count(),3);
+ });
+ await check('Drawing creates an editable button attached to the chosen carousel and cancel creates nothing',async()=>{
+  await ensureEditing();await editor.locator('[data-editor-draw]').first().click();
+  const bounds=await editor.locator('[data-layout-key="block-salon-test"]').boundingBox();
+  const x=bounds.x+80,y=Math.min(700,Math.max(240,bounds.y+Math.min(bounds.height*.6,350)));
+  await editor.mouse.move(x,y);await editor.mouse.down();await editor.mouse.move(x+180,y+50,{steps:5});await editor.mouse.up();await drawer.waitFor({state:'visible'});
+  await drawer.locator('[name="buttonLabel"]').fill('Botón dibujado');await drawer.locator('[name="link"]').fill('https://example.com/reservar');await submit();
+  const record=await editor.evaluate(()=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.floating));
+  assert.equal(record.floating.anchor,'block-salon-test');
+  const drawn=editor.locator(`[data-layout-key="block-${record.id}"]`);
+  assert.equal(await drawn.evaluate(el=>el.parentElement.dataset.layoutKey),'block-salon-test');
+  assert.match(await drawn.innerText(),/Botón dibujado/);
+  const count=await editor.evaluate(()=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.length);
+  await editor.locator('[data-editor-draw]').first().click();await editor.keyboard.press('Escape');
+  assert.equal(await editor.locator('.text-draw-surface').count(),0);
+  assert.equal(await editor.evaluate(()=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.length),count);
+  await editor.reload({waitUntil:'networkidle'});
+  assert.equal(await editor.locator(`[data-layout-key="block-${record.id}"]`).evaluate(el=>el.parentElement.dataset.layoutKey),'block-salon-test');
+ });
+ await check('Drawn buttons can be moved onto Taco, keep their fill, and save the new placement',async()=>{
+  await ensureEditing();
+  const record=await editor.evaluate(()=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.floating&&b.type==='button'));
+  const drawn=editor.locator(`[data-layout-key="block-${record.id}"]`),handle=drawn.locator('.drawn-move-handle');
+  await handle.scrollIntoViewIfNeeded();const start=await handle.boundingBox();
+  // Scrolling during the drag is the same operation a person uses between banners.
+  await editor.mouse.move(start.x+20,start.y+12);await editor.mouse.down();
+  await editor.locator('[data-layout-key="block-taco-test"]').scrollIntoViewIfNeeded();
+  const target=await editor.locator('[data-layout-key="block-taco-test"]').boundingBox();
+  await editor.mouse.move(target.x+340,Math.min(700,target.y+target.height*.6),{steps:8});await editor.mouse.up();
+  await editor.waitForFunction(id=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.id===id)?.floating.anchor==='block-taco-test',record.id);
+  assert.equal(await drawn.evaluate(el=>el.parentElement.dataset.layoutKey),'block-taco-test');
+  assert.notEqual(await drawn.locator('[data-button-owner]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+  const position=await editor.evaluate(id=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.id===id).floating.positions.desktop,record.id);
+  await editor.reload({waitUntil:'networkidle'});
+  assert.deepEqual(await editor.evaluate(id=>window.BalconApp.site.pages.find(p=>p.id==='businesses').blocks.find(b=>b.id===id).floating.positions.desktop,record.id),position);
+ });
+ await check('Drawing text opens a single main field and duplication includes attached content and overrides',async()=>{
+  await ensureEditing();await editor.locator('[data-layout-key="block-taco-test"]').scrollIntoViewIfNeeded();
+  await editor.locator('[data-editor-draw]').first().click();await editor.locator('[data-draw-kind]').selectOption('text');
+  await editor.locator('[data-layout-key="block-taco-test"]').scrollIntoViewIfNeeded();
+  const target=await editor.locator('[data-layout-key="block-taco-test"]').boundingBox();
+  await editor.mouse.move(target.x+50,Math.max(200,target.y+80));await editor.mouse.down();await editor.mouse.move(target.x+290,Math.max(200,target.y+80)+60,{steps:5});await editor.mouse.up();
+  await drawer.waitFor({state:'visible'});assert.equal(await drawer.locator('.cms-primary > .cms-field').count(),1);
+  await drawer.locator('[name="text"]').fill('Texto dibujado');await submit();
+  const original=await editor.evaluate(async()=>{
+   const site=structuredClone(window.BalconApp.site),key='page-businesses:article-block-taco-test.div-0.h2-0';
+   site.elementOverrides[key]={color:'#fedcba',lockAppearance:{fontFamily:'Georgia'},positions:{phone:{container:'page-businesses:article-block-taco-test',x:.1,y:12,width:.7}}};
+   await window.BZEditor.context().admin.applyDocument(site);
+   return {key,children:site.pages.find(p=>p.id==='businesses').blocks.filter(b=>b.floating?.anchor==='block-taco-test')};
+  });
+  assert.equal(original.children.length,2);
+  await openBlock('taco-test');await drawer.locator('[data-editor-duplicate]').click();await drawer.waitFor({state:'hidden'});
+  const result=await editor.evaluate(()=>{
+   const site=window.BalconApp.site,blocks=site.pages.find(p=>p.id==='businesses').blocks,index=blocks.findIndex(b=>b.id==='taco-test'),copy=blocks[index+1];
+   return {copy,children:blocks.filter(b=>b.floating?.anchor==='block-'+copy.id),override:site.elementOverrides['page-businesses:article-block-'+copy.id+'.div-0.h2-0']};
+  });
+  assert.equal(result.children.length,2);assert.notEqual(result.copy.id,'taco-test');
+  assert.equal(result.override.color,'#fedcba');assert.equal(result.override.lockAppearance.fontFamily,'Georgia');
+  assert.equal(result.override.positions.phone.container,'page-businesses:article-block-'+result.copy.id);
+  for(let i=0;i<original.children.length;i++){
+   assert.notEqual(result.children[i].id,original.children[i].id);
+   assert.deepEqual(result.children[i].floating.positions,original.children[i].floating.positions);
+  }
+  const copiedButton=result.children.find(b=>b.type==='button');await openBlock(copiedButton.id);await drawer.locator('[name="buttonLabel"]').fill('Solo la copia');await submit();
+  const originalButton=original.children.find(b=>b.type==='button');
+  assert.match(await editor.locator(`[data-layout-key="block-${originalButton.id}"]`).innerText(),/Botón dibujado/);
+  await openBlock(result.copy.id);await drawer.locator('[data-cms-delete="blocks"]').click();await editor.locator('#cms-confirm [data-cms-confirm]').click();
+  for(const child of result.children)assert.equal(await editor.locator(`[data-layout-key="block-${child.id}"]`).count(),0);
+  assert.equal(await editor.locator(`[data-layout-key="block-${originalButton.id}"]`).count(),1);
+ });
+ await check('Desktop drawings remain readable inside their carousel on a phone',async()=>{
+  if(await editor.evaluate(()=>document.body.classList.contains('visual-editing')))await editor.locator('[data-layout-toggle]').click();
+  await editor.setViewportSize({width:390,height:844});
+  const drawn=editor.locator('[data-layout-key="block-taco-test"] .drawn-element.type-button');
+  await drawn.waitFor();
+  await editor.waitForFunction(()=>document.querySelector('[data-layout-key="block-taco-test"] .drawn-element.type-button')?.getBoundingClientRect().width>=159);
+  const rect=await drawn.boundingBox(),parent=await editor.locator('[data-layout-key="block-taco-test"]').boundingBox();
+  assert.ok(rect.width>=159&&rect.x>=parent.x-1&&rect.x+rect.width<=parent.x+parent.width+1);
+  assert.ok(await editor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await editor.setViewportSize({width:1440,height:1000});
+ });
+ await check('Adding a dish needs only six basic fields and its public recipe contains those details',async()=>{
+  await ready(editor,'recetario');await ensureEditing();await editor.locator('[data-cms-add="recipes"]').first().click();await drawer.waitFor({state:'visible'});
+  const fields=await drawer.locator('.cms-primary > .cms-field').evaluateAll(nodes=>nodes.map(node=>node.querySelector('[name]')?.name));
+  assert.deepEqual(fields,['name','image','description','ingredients','steps','servings']);
+  assert.equal(await drawer.locator('details.cms-advanced').first().getAttribute('open'),null);
+  await editor.screenshot({path:path.join(artifacts,'recetario-formulario-simple.png')});
+  await drawer.locator('[name="name"]').fill('Platillo sencillo');await drawer.locator('[name="description"]').fill('Descripción del platillo.');
+  await drawer.locator('[name="ingredients"]').fill('2 tomates\nUna pizca de sal');await drawer.locator('[name="steps"]').fill('Cortar los tomates.\nAgregar sal y servir.');await drawer.locator('[name="servings"]').fill('4');
+  await drawer.locator('[data-cms-upload="image"]').setInputFiles({name:'platillo.png',mimeType:'image/png',buffer:Buffer.from(png.split(',')[1],'base64')});
+  await editor.waitForFunction(()=>document.querySelector('#cms-editor [name="image"]').value.startsWith('https:'));await submit();
+  const dish=await editor.evaluate(()=>window.BalconApp.site.recipes.find(recipe=>recipe.name==='Platillo sencillo'));
+  assert.deepEqual(dish.ingredients,['2 tomates','Una pizca de sal']);assert.equal(dish.servings,4);
+  if(await editor.evaluate(()=>document.body.classList.contains('visual-editing')))await editor.locator('[data-layout-toggle]').click();
+  await editor.locator(`[data-recipe="${dish.id}"]`).first().click();
+  const detail=editor.locator('#detail-content');await detail.waitFor({state:'visible'});
+  assert.equal(await detail.locator('h2').innerText(),'Platillo sencillo');assert.equal(await detail.locator('.detail-recipe-photo').count(),1);
+  assert.equal(await detail.locator('.recipe-ingredients li').count(),2);assert.equal(await detail.locator('.recipe-method li').count(),2);
+  assert.match(await detail.innerText(),/4 porciones/);assert.doesNotMatch(await detail.innerText(),/Investigación|Dificultad|Procedencia/);
+  await editor.keyboard.press('Escape');await ready(editor,'audit');
  });
  await check('Independent background and border controls on all eight block types',async()=>{
   for(const id of ['banner','image','text','title','button','shortcut','group','carousel']) {
@@ -199,6 +341,7 @@ let base;
   await ensureEditing();
   await editor.locator('[data-layout-key="block-text"] h2').click();
   await editor.locator('[data-layout-edit]:visible').click();
+  await expandAdvanced();
   await drawer.locator('[name="text"]').fill('Texto editado visualmente');
   await drawer.locator('[name="size"]').fill('34');await drawer.locator('[name="align"]').selectOption('right');
   await drawer.locator('[name="color"]').fill('#fedcba');await drawer.locator('[name="color"]').dispatchEvent('input');
@@ -218,8 +361,9 @@ let base;
  await check('Template selection persists without discarding existing content',async()=>{
   await ready(editor,'section-fbc97490-7ba');
   await editor.locator('[data-edit-panel="pages"]').first().click({force:true});
+  await expandAdvanced();
   await drawer.locator('[name="template"]').selectOption('standard');await submit();assert.equal(await editor.locator('.sister-page').count(),0);
-  await editor.locator('[data-edit-panel="pages"]').first().click({force:true});await drawer.locator('[name="template"]').selectOption('sister-companies');await submit();assert.equal(await editor.locator('.sister-page').count(),1);
+  await editor.locator('[data-edit-panel="pages"]').first().click({force:true});await expandAdvanced();await drawer.locator('[name="template"]').selectOption('sister-companies');await submit();assert.equal(await editor.locator('.sister-page').count(),1);
   assert.equal(await editor.evaluate(()=>window.BalconApp.site.pages.find(p=>p.id==='section-fbc97490-7ba').blocks.length),4);
  });
  await check('Explicit split presentation remains editable inside the immersive template',async()=>{
@@ -271,6 +415,7 @@ let base;
  });
  await check('The immersive template creates a complete editable menu',async()=>{
   await editor.locator('[data-cms-add-menu="audit"]').click();
+  await expandAdvanced();
   await drawer.locator('[data-section-template]').selectOption('sister-companies');await drawer.locator('[data-new-element="menu"]').click();
   const id=await editor.evaluate(()=>window.BalconApp.site.pages.at(-1).id);
   await drawer.locator('[name="title"]').fill('Espacios de prueba');await submit();

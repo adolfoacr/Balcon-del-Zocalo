@@ -16,7 +16,7 @@ const server=http.createServer((req,res)=>{
  const requested=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
  if(requested!==root && !requested.startsWith(root+path.sep)){res.writeHead(403).end();return;}
  const file=requested===root ? path.join(root,'index.html') : requested;
- fs.readFile(file,(error,data)=>{if(error){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':'text/html');res.end(data);});
+ fs.readFile(file,(error,data)=>{if(error){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':file.endsWith('.webp')?'image/webp':'text/html');res.end(data);});
 });
 const results=[];
 let browser;
@@ -37,7 +37,11 @@ async function mock(context,state) {
   const pathname=url.pathname;
   let response=[];
   if(pathname==='/rest/v1/cms_site')response=state.document ? [{document:state.document,revision:state.revision || 1}] : [];
-  else if(pathname==='/auth/v1/user')response=user;
+  else if(pathname==='/auth/v1/user') {if(request.method()==='PUT')state.passwordChanges=(state.passwordChanges||0)+1;response=user;}
+  else if(pathname==='/auth/v1/signup') {state.registrations=(state.registrations||0)+1;response={user};}
+  else if(pathname==='/auth/v1/token')response={access_token:'LOCAL_TEST_ONLY',refresh_token:'LOCAL_TEST_ONLY',expires_in:3600,user};
+  else if(pathname==='/auth/v1/recover') {state.recoveryRedirect=url.searchParams.get('redirect_to');response={};}
+  else if(pathname==='/auth/v1/verify')response={access_token:'LOCAL_TEST_ONLY',refresh_token:'LOCAL_TEST_ONLY',expires_in:3600,user};
   else if(pathname==='/rest/v1/cms_admins')response=state.roles??[{user_id:user.id,owner:true,chef:true}];
   else if(pathname==='/rest/v1/rpc/public_works') {
    if(state.failGallery)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Galería temporalmente no disponible'})});
@@ -464,7 +468,9 @@ let base;
   assert.match(await gp.locator('#lab-count').innerText(),/1 publicación.*4 ejemplos/);
   for(const item of await gp.locator('.work-demo').all()){
    assert.match(await item.innerText(),/Demostración/);assert.match(await item.innerText(),/autor ficticio/);
+   const photo=item.locator('.lab-card-media>.work-project-photo');await photo.scrollIntoViewIfNeeded();await photo.evaluate(img=>img.decode());assert.equal(await photo.evaluate(img=>img.naturalWidth),1536);
    await item.locator('summary').click();assert.equal(await item.locator('.work-reading-section').count(),6);
+   const detailPhoto=item.locator('.work-project-figure img');await detailPhoto.scrollIntoViewIfNeeded();await detailPhoto.evaluate(img=>img.decode());assert.equal(await detailPhoto.evaluate(img=>img.naturalHeight),1024);
    assert.match(await item.locator('details').innerText(),/fictici/);await item.locator('summary').click();
   }
   await gp.locator('[data-work-id="10000000-0000-4000-8000-000000000001"] summary').click();
@@ -530,6 +536,44 @@ let base;
   assert.match(await gp.locator('#public-works>.notice').innerText(),/No pudimos cargar/);galleryState.failGallery=false;
  });
  await galleryVisitor.close();await gaContext.close();
+ const accountsState={document:structuredClone(initial),revision:1,roles:[]};
+ const accounts=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});await mock(accounts,accountsState);
+ const ap=await accounts.newPage();ap.on('pageerror',error=>errors.push(error.message));
+ await check('Registration requests confirmation and accepts a confirmation link without granting admin access',async()=>{
+  await ready(ap,'registro');const form=ap.locator('[data-account-form="register"]');
+  await form.locator('[name="name"]').fill('Cuenta de prueba');await form.locator('[name="email"]').fill('audit@example.test');await form.locator('[name="password"]').fill('Local-test-only-1234');await form.locator('button').click();
+  await ap.waitForFunction(()=>document.body.dataset.tab==='cuenta');assert.equal(accountsState.registrations,1);
+  assert.match(await ap.locator('.account-card').innerText(),/confirmación/);
+  assert.equal(await ap.evaluate(()=>window.BalconApp.service.user),null);
+  await ap.goto(base+'/?token_hash=LOCAL_CONFIRMATION_ONLY&type=signup#cuenta',{waitUntil:'networkidle'});
+  await ap.waitForFunction(()=>!!window.BalconApp?.service.user);assert.equal(await ap.evaluate(()=>window.BalconApp.service.isAdmin),false);
+  assert.equal(new URL(ap.url()).searchParams.has('token_hash'),false);
+  await ap.locator('[data-account-logout]').first().click();await ap.locator('[data-account-form="login"]').waitFor();
+ });
+ await check('User and administrator login keep their roles after reload and logout clears the session',async()=>{
+  const login=async()=>{const form=ap.locator('[data-account-form="login"]');await form.locator('[name="email"]').fill('audit@example.test');await form.locator('[name="password"]').fill('Local-test-only-1234');await form.locator('button').click();await ap.waitForFunction(()=>!!window.BalconApp?.service.user);};
+  await login();assert.equal(await ap.evaluate(()=>window.BalconApp.service.isAdmin),false);assert.equal(await ap.locator('[data-cms-publish]').count(),0);
+  await ap.reload({waitUntil:'networkidle'});assert.equal(await ap.evaluate(()=>!!window.BalconApp.service.user),true);
+  await ap.locator('[data-account-logout]').first().click();await ap.locator('[data-account-form="login"]').waitFor();
+  accountsState.roles=[{user_id:user.id,owner:true,chef:false}];await login();await ap.waitForFunction(()=>document.body.dataset.tab==='admin');
+  assert.equal(await ap.evaluate(()=>window.BalconApp.service.isAdmin),true);await ap.reload({waitUntil:'networkidle'});assert.equal(await ap.evaluate(()=>window.BalconApp.service.isOwner),true);
+  await ap.locator('[data-account-logout]').first().click();await ap.waitForFunction(()=>!window.BalconApp.service.user);
+  assert.equal(await ap.evaluate(()=>sessionStorage.getItem(window.BalconApp.service.storageKey)),null);
+ });
+ await check('Recovery keeps the app URL, validates matching passwords and explains expired links',async()=>{
+  accountsState.roles=[];await ready(ap,'recuperar');const form=ap.locator('[data-account-form="recover"]');
+  await form.locator('[name="email"]').fill('audit@example.test');await form.locator('button').click();
+  await ap.waitForFunction(()=>document.querySelector('.account-card').textContent.includes('Solicitud enviada'));
+  assert.equal(accountsState.recoveryRedirect,base+'/?auth=recovery');
+  await ap.goto(base+'/?token_hash=LOCAL_RECOVERY_ONLY&type=recovery',{waitUntil:'networkidle'});const reset=ap.locator('[data-account-form="reset"]');await reset.waitFor();
+  await reset.locator('[name="password"]').fill('Local-test-only-1234');await reset.locator('[name="passwordConfirm"]').fill('Local-test-only-5678');await reset.locator('button').click();
+  assert.match(await reset.locator('.form-error').innerText(),/no coinciden/);assert.equal(accountsState.passwordChanges||0,0);
+  await reset.locator('[name="passwordConfirm"]').fill('Local-test-only-1234');await reset.locator('button').click();await ap.waitForFunction(()=>document.body.dataset.tab==='cuenta');assert.equal(accountsState.passwordChanges,1);
+  await ap.goto(base+'/?error=access_denied&error_code=otp_expired&type=recovery',{waitUntil:'networkidle'});
+  await ap.locator('[data-account-form="recover"]').waitFor();assert.match(await ap.locator('.account-card').innerText(),/caduc|válido/);
+  assert.equal(await ap.evaluate(()=>window.BalconApp.service.user),null);
+ });
+ await accounts.close();
  await check('No uncaught browser errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify({passed:results.length,checks:results,service:'local mock; no production writes'},null,2));
  console.log(`Completed ${results.length} checks. Screenshots: ${artifacts}`);

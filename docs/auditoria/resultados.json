@@ -1,5 +1,5 @@
 {
-  "passed": 29,
+  "passed": 37,
   "checks": [
     "Public routes at desktop, tablet, and phone widths",
     "Sister companies template has no controls strip and keeps keyboard navigation",
@@ -29,6 +29,14 @@
     "The immersive template creates a complete editable menu",
     "Publication errors keep the local draft and explain the server rejection",
     "Publication offloads inline originals once, then reloads the public result",
+    "Gallery shows four clearly identified full demonstration projects alongside real work",
+    "Gallery filters and complete project reading work on phones without page overflow",
+    "Every administrator can withdraw a project; cancellation changes nothing",
+    "Withdrawal persists for visitors and preserves unrelated unpublished edits",
+    "Removing a demonstration stays removed after reloading and leaves the other examples",
+    "A failed moderation publication keeps the card and reports failure",
+    "Database deletion is used when installed and permission errors never pretend success",
+    "Gallery outage preserves identified demonstrations and reports the loading failure",
     "No uncaught browser errors"
   ],
   "service": "local mock; no production writes"

@@ -41,4 +41,6 @@ Se retiró el encabezado automático «Espacios. Una misma búsqueda.» y el esp
 
 ## Verificación
 
+En **Nuestro libro**, carga o cambia el PDF, revísalo y pulsa **Guardar PDF en la página**. El archivo se sube a la biblioteca y queda publicado para todos. Este botón publica únicamente el PDF; los demás cambios pendientes siguen en el borrador. Si el libro ya está cargado en este navegador, puedes publicarlo directamente con el botón. Si falla la publicación, la copia local se conserva y se muestra el error.
+
 La suite `tests/browser-audit.cjs` comprueba los formularios, la reserva compartida, el color, la duplicación independiente, los cuadros dibujados, el móvil, los borradores y la publicación con un servicio simulado. `scripts/inspect-live-carousels.cjs` lee la configuración pública real y comprueba su migración en memoria, sin escribir en la base de datos.

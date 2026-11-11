@@ -1,5 +1,5 @@
 {
-  "passed": 41,
+  "passed": 42,
   "checks": [
     "Public routes at desktop, tablet, and phone widths",
     "Sister companies template has no controls strip and keeps keyboard navigation",
@@ -41,6 +41,7 @@
     "User and administrator login keep their roles after reload and logout clears the session",
     "Recovery keeps the app URL, validates matching passwords and explains expired links",
     "A local PDF can be published independently, and failures retain the local copy",
+    "The supplied public book opens with all 237 pages and a direct PDF link",
     "No uncaught browser errors"
   ],
   "service": "local mock; no production writes"

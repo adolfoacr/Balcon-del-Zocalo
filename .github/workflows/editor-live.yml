@@ -1,0 +1,22 @@
+name: Revisar carruseles publicados
+on:
+  pull_request:
+    paths:
+      - index.html
+      - assets/bz-editor.js
+      - scripts/inspect-live-carousels.cjs
+      - .github/workflows/editor-live.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/inspect-live-carousels.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: estado-publico-carruseles
+          path: editor-live-summary.json

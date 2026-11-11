@@ -1,0 +1,67 @@
+name: Actualizar noticias del medio
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - index.html
+      - data/media-sources.json
+      - scripts/refresh-media-news.py
+      - .github/workflows/media-news.yml
+  push:
+    branches: [gh-pages]
+    paths:
+      - index.html
+      - data/media-sources.json
+      - scripts/refresh-media-news.py
+      - .github/workflows/media-news.yml
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: noticias-del-medio
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Comprobar la lectura real del medio
+        run: python3 scripts/refresh-media-news.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vista-previa-noticias-del-medio
+          path: data/media-news.json
+  refresh:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - name: Leer las noticias de la fuente publicada
+        run: python3 scripts/refresh-media-news.py
+      - name: Guardar las noticias nuevas y publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add data/media-news.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Actualiza las noticias del medio'
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"

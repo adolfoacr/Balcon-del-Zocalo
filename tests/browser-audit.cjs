@@ -11,6 +11,10 @@ fs.mkdirSync(artifacts,{recursive:true});
 const config=JSON.parse(fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<script[^>]*id="service-config"[^>]*>(.*?)<\/script>/s)[1]);
 const user={id:'00000000-0000-4000-8000-000000000001',email:'local-audit@example.test',user_metadata:{full_name:'Auditoría local'}};
 const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+function samplePDF(){
+ const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Contents 4 0 R >>','<< /Length 0 >>\nstream\n\nendstream'];
+ let data='%PDF-1.4\n',offsets=[0];objects.forEach((value,index)=>{offsets.push(Buffer.byteLength(data));data+=`${index+1} 0 obj\n${value}\nendobj\n`;});const offset=Buffer.byteLength(data);data+='xref\n0 5\n0000000000 65535 f \n'+offsets.slice(1).map(value=>String(value).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n${offset}\n%%EOF`;return Buffer.from(data);
+}
 const sampleFeed={version:1,sourceURL:'https://www.culinariamexicana.com.mx/',sourceName:'Culinaria Mexicana',updatedAt:'2026-11-11T00:00:00Z',items:[1,2,3].map(index=>({id:'external-test-'+index,title:'Noticia de prueba '+index,url:'https://www.culinariamexicana.com.mx/nota-de-prueba-'+index+'/',excerpt:'Resumen de prueba del medio.',image:'',publishedAt:'2026-11-10T12:00:00Z'}))};
 const server=http.createServer((req,res)=>{
  const requested=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
@@ -61,6 +65,7 @@ async function mock(context,state) {
   } else if(pathname.startsWith('/storage/v1/object/site-media/')) {
    state.uploads=(state.uploads || 0)+1;state.lastUploadBytes=request.postDataBuffer()?.length;response={Key:pathname};
   } else if(pathname.startsWith('/storage/v1/object/public/')) {
+   if(pathname.endsWith('.pdf'))return route.fulfill({status:200,contentType:'application/pdf',body:samplePDF()});
    return route.fulfill({status:200,contentType:'image/png',body:Buffer.from(png.split(',')[1],'base64')});
   } else if(pathname.startsWith('/auth/'))response={};
   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(response)});
@@ -574,6 +579,27 @@ let base;
   assert.equal(await ap.evaluate(()=>window.BalconApp.service.user),null);
  });
  await accounts.close();
+ const bookState={document:structuredClone(initial),revision:1};
+ const bookContext=await adminContext(bookState),bp=await bookContext.newPage();bp.on('pageerror',error=>errors.push(error.message));
+ await check('A local PDF can be published independently, and failures retain the local copy',async()=>{
+  await ready(bp,'libro');await bp.locator('#book-file').setInputFiles({name:'libro-publico.pdf',mimeType:'application/pdf',buffer:samplePDF()});
+  await bp.locator('#save-book-page').waitFor();assert.equal(bookState.publications||0,0);
+  await bp.locator('[data-layout-toggle]').click();
+  await bp.evaluate(async()=>{const doc=structuredClone(window.BalconApp.site);doc.restaurantName='Nombre pendiente';await window.BZEditor.context().admin.applyDocument(doc);});
+  bookState.failPublish=true;await bp.locator('#save-book-page').click();await bp.locator('#book-error:not([hidden])').waitFor();
+  assert.equal(bookState.publications||0,0);assert.ok(await bp.locator('#save-book-page').isVisible());
+  bookState.failPublish=false;await bp.locator('#save-book-page').click();
+  await bp.waitForFunction(()=>document.querySelector('#toast').textContent.includes('PDF guardado en la página'));
+  assert.equal(bookState.publications,1);assert.ok(bookState.document.bookPage.pdfURL.startsWith(config.url+'/storage/v1/object/public/'));
+  assert.notEqual(bookState.document.restaurantName,'Nombre pendiente');assert.equal(await bp.evaluate(()=>window.BalconApp.site.restaurantName),'Nombre pendiente');
+  const visitor=await browser.newContext();await mock(visitor,bookState);const vp=await visitor.newPage();await ready(vp,'libro');
+  await vp.locator('#open-published-book').click();await vp.locator('#pdf-canvas').waitFor();assert.match(await vp.locator('.reader-privacy').innerText(),/PDF publicado/);
+  assert.equal(await vp.locator('#save-book-page').count(),0);
+  await vp.evaluate(async()=>{const request=indexedDB.open('balcon-library',1);const db=await new Promise(resolve=>request.onsuccess=()=>resolve(request.result));await new Promise(resolve=>{const tx=db.transaction('books','readwrite'),store=tx.objectStore('books'),read=store.get('current');read.onsuccess=()=>store.put({...read.result,publishedURL:'https://example.test/old.pdf'},'current');tx.oncomplete=resolve;});});
+  await vp.reload({waitUntil:'networkidle'});await vp.locator('#pdf-canvas').waitFor();assert.equal(await vp.evaluate(()=>window.BZCurrentBook.publishedURL),bookState.document.bookPage.pdfURL);
+  await visitor.close();
+ });
+ await bookContext.close();
  await check('No uncaught browser errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify({passed:results.length,checks:results,service:'local mock; no production writes'},null,2));
  console.log(`Completed ${results.length} checks. Screenshots: ${artifacts}`);

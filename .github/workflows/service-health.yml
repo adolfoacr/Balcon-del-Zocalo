@@ -1,17 +1,19 @@
 name: Comprobar disponibilidad y cuentas
 on:
   schedule:
-    - cron: '29 */4 * * *'
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
   pull_request:
     paths:
       - index.html
       - scripts/check-live-service.cjs
+      - scripts/check-live-browser.cjs
       - .github/workflows/service-health.yml
   push:
     branches: [gh-pages]
     paths:
       - scripts/check-live-service.cjs
+      - scripts/check-live-browser.cjs
       - .github/workflows/service-health.yml
 permissions:
   contents: read
@@ -29,9 +31,18 @@ jobs:
           node-version: 22
       - name: Consultar sitio, base de datos y autenticación
         run: node scripts/check-live-service.cjs
+      - name: Preparar comprobación real del navegador
+        if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: npm install --no-save --package-lock=false playwright-core@1.56.1
+      - name: Abrir la aplicación pública y sus pantallas de cuentas
+        if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: node scripts/check-live-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: estado-del-servicio
-          path: service-status.json
+          path: |
+            service-status.json
+            live-browser-status.json
+            live-gallery.png
           retention-days: 14

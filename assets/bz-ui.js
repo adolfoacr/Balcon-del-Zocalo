@@ -155,6 +155,13 @@
   }
 
   function prepareSite(site, fromSeed) {
+    // Publish the supplied book once; subsequent explicit PDF changes retain priority.
+    site.bookPage ||= {};
+    if(site.bookPage.pdfDeploymentVersion!==1){
+      site.bookPage.pdfURL='https://adolfoacr.github.io/Balcon-del-Zocalo/assets/books/libro-bz-20261110.pdf';
+      site.bookPage.pdfDeploymentVersion=1;
+    }
+
     if (fromSeed && !site.pages.some(isSisterPage)) {
       let index=0;
       const page={id:'section-fbc97490-7ba',...sisterTemplate(prefix => `${prefix}-sister-${++index}`)};

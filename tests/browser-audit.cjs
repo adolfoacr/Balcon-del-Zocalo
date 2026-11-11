@@ -37,6 +37,7 @@ async function mock(context,state) {
    if(url.pathname==='/data/media-news.json')return route.fulfill({contentType:'application/json',body:JSON.stringify(state.feed || sampleFeed)});
    return route.continue();
   }
+  if(url.pathname==='/Balcon-del-Zocalo/assets/books/libro-bz-20261110.pdf')return route.fulfill({contentType:'application/pdf',body:fs.readFileSync(path.join(root,'assets/books/libro-bz-20261110.pdf'))});
   if(url.origin!==config.url) {if(url.protocol==='data:')return route.continue();return route.abort();}
   const pathname=url.pathname;
   let response=[];
@@ -600,6 +601,14 @@ let base;
   await visitor.close();
  });
  await bookContext.close();
+ await check('The supplied public book opens with all 237 pages and a direct PDF link',async()=>{
+  const context=await browser.newContext({reducedMotion:'reduce'});await mock(context,{});const reader=await context.newPage();reader.on('pageerror',error=>errors.push(error.message));
+  await ready(reader,'libro');assert.ok(await reader.locator('a[href$="libro-bz-20261110.pdf"]').count()>0);
+  await reader.locator('#open-published-book').click();await reader.locator('#page-total').waitFor();assert.equal(await reader.locator('#page-total').innerText(),'237');
+  await reader.locator('#page-number').fill('237');await reader.locator('#page-number').dispatchEvent('change');
+  await reader.waitForFunction(()=>document.querySelector('#pdf-canvas')?.width>0);assert.equal(await reader.locator('#page-number').inputValue(),'237');
+  await context.close();
+ });
  await check('No uncaught browser errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify({passed:results.length,checks:results,service:'local mock; no production writes'},null,2));
  console.log(`Completed ${results.length} checks. Screenshots: ${artifacts}`);

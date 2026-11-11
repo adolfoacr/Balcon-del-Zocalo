@@ -1,0 +1,18 @@
+.work-ingredient-art { position:absolute; inset:0; margin:auto; width:72%; height:80%; stroke:var(--work-art-color,var(--gold)); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.work-demo .lab-card-media { background:radial-gradient(ellipse at 50% 60%,var(--work-art-glow,#ad8b3026),transparent 70%),var(--soft); }
+.work-demo[data-demo-topic="stems"] { --work-art-color:#b4c49a; --work-art-glow:#71933d30; }
+.work-demo[data-demo-topic="seeds"] { --work-art-color:#d3b594; --work-art-glow:#b87b3530; }
+.work-demo[data-demo-topic="citrus"] { --work-art-color:#e3bc77; --work-art-glow:#ce891d30; }
+.work-demo[data-demo-topic="bread"] { --work-art-color:#d8bb8f; --work-art-glow:#b5763430; }
+.work-reading-section { margin:24px 0; }
+.work-reading-section h4 { margin-bottom:10px; color:var(--ink); font-size:16px; }
+.work-reading-section p { line-height:1.7; }
+.work-demo-note { padding:14px; border-left:2px solid var(--gold); color:var(--muted); font-size:13px; line-height:1.6; }
+.work-delete { margin-top:22px; min-height:44px; }
+.work-delete-dialog { width:min(520px,calc(100vw - 32px)); max-height:85vh; padding:28px; background:var(--paper); color:var(--ink); border:1px solid var(--line); }
+.work-delete-dialog h2 { font-size:25px; margin-bottom:18px; }
+.work-delete-dialog p { margin-bottom:18px; line-height:1.6; }
+.work-delete-dialog .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end; }
+.lab-gallery .lab-work-card:has(details[open]) { grid-column:1/-1; }
+.lab-gallery .lab-work-detail[open] { max-width:850px; }
+@media(max-width:700px) { .work-delete-dialog { padding:22px; } .work-delete-dialog .actions .button { flex:1 1 auto; } }

@@ -1,0 +1,32 @@
+name: Comprobar sitio y galería
+on:
+  pull_request:
+    paths:
+      - index.html
+      - assets/**
+      - tests/browser-audit.cjs
+      - supabase/upgrade-work-delete.sql
+      - .github/workflows/browser-audit.yml
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright-core@1.56.1
+      - name: Probar el editor y la galería con servicios simulados
+        env:
+          BZ_PLAYWRIGHT_MODULE: playwright-core
+          BZ_CHROMIUM: /usr/bin/google-chrome
+        run: node tests/browser-audit.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comprobaciones-sitio-galeria
+          path: .audit-artifacts/
+          include-hidden-files: true

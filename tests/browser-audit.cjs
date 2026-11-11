@@ -38,7 +38,17 @@ async function mock(context,state) {
   let response=[];
   if(pathname==='/rest/v1/cms_site')response=state.document ? [{document:state.document,revision:state.revision || 1}] : [];
   else if(pathname==='/auth/v1/user')response=user;
-  else if(pathname==='/rest/v1/cms_admins')response=[{user_id:user.id,owner:true,chef:true}];
+  else if(pathname==='/rest/v1/cms_admins')response=state.roles??[{user_id:user.id,owner:true,chef:true}];
+  else if(pathname==='/rest/v1/rpc/public_works') {
+   if(state.failGallery)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Galería temporalmente no disponible'})});
+   const data=request.postDataJSON();response=(state.works||[]).filter(work=>work.visibility==='public').slice(data.skip,data.skip+data.take);
+  } else if(pathname==='/rest/v1/work_submissions')response=(state.works||[]).filter(work=>!url.searchParams.has('author_id')||url.searchParams.get('author_id')==='eq.'+work.author_id);
+  else if(pathname==='/rest/v1/rpc/delete_work') {
+   state.deleteCalls=(state.deleteCalls||0)+1;
+   if(state.forbidDelete)return route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({code:'42501',message:'admin_required'})});
+   if(!state.permanentDelete)return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({code:'PGRST202',message:'Function not installed'})});
+   state.works=state.works.filter(work=>work.id!==request.postDataJSON().work_id);response=null;
+  }
   else if(pathname==='/rest/v1/rpc/publish_site') {
    if(state.failPublish)return route.fulfill({status:400,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({code:'22023',message:'invalid_document'})});
    const data=request.postDataJSON();assert.equal(data.expected_revision,state.revision || 1);
@@ -441,6 +451,85 @@ let base;
   assert.equal(await visitor.locator('[data-layout-key="block-text"] h2').innerText(),'Texto editado visualmente');
   assert.ok(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await fresh.close();
  });
+ const galleryState={document:structuredClone(initial),revision:1,roles:[{user_id:user.id,owner:false,chef:false}],works:[{
+  id:'10000000-0000-4000-8000-000000000001',author_id:user.id,author_name:'Participante de prueba',kind:'research',visibility:'public',status:'received',
+  title:'Investigación de prueba',summary:'Una propuesta pública del servicio para comprobar la moderación.',body:'Método y resultados enviados por el participante. <img src=x onerror="window.injected=true">',attachment_paths:[],created_at:'2026-11-11T12:00:00Z'
+ }]};
+ const galleryVisitor=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});await mock(galleryVisitor,galleryState);
+ const gp=await galleryVisitor.newPage();gp.on('pageerror',error=>errors.push(error.message));
+ await check('Gallery shows four clearly identified full demonstration projects alongside real work',async()=>{
+  await ready(gp,'comparte');await gp.locator('.lab-work-card').first().waitFor();
+  assert.equal(await gp.locator('.work-demo').count(),4);assert.equal(await gp.locator('.lab-work-card').count(),5);
+  assert.equal(await gp.locator('[data-work-delete]').count(),0);
+  assert.match(await gp.locator('#lab-count').innerText(),/1 publicación.*4 ejemplos/);
+  for(const item of await gp.locator('.work-demo').all()){
+   assert.match(await item.innerText(),/Demostración/);assert.match(await item.innerText(),/autor ficticio/);
+   await item.locator('summary').click();assert.equal(await item.locator('.work-reading-section').count(),6);
+   assert.match(await item.locator('details').innerText(),/fictici/);await item.locator('summary').click();
+  }
+  await gp.locator('[data-work-id="10000000-0000-4000-8000-000000000001"] summary').click();
+  assert.equal(await gp.locator('.work-body img').count(),0);assert.equal(await gp.evaluate(()=>window.injected),undefined);
+  await gp.locator('[data-work-id="10000000-0000-4000-8000-000000000001"] summary').click();
+  await gp.locator('.lab-gallery').screenshot({path:path.join(artifacts,'galeria-proyectos-demostracion.png')});
+ });
+ await check('Gallery filters and complete project reading work on phones without page overflow',async()=>{
+  await gp.locator('[data-lab-kind="research"]').click();assert.equal(await gp.locator('.work-demo').count(),2);assert.equal(await gp.locator('.lab-work-card').count(),3);
+  await gp.locator('[data-lab-kind="development"]').click();assert.equal(await gp.locator('.lab-work-card').count(),2);
+  await gp.setViewportSize({width:390,height:844});await gp.locator('.work-demo summary').first().click();
+  assert.ok(await gp.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await gp.locator('.work-demo').first().screenshot({path:path.join(artifacts,'proyecto-lectura-movil.png')});
+ });
+ const gaContext=await adminContext(galleryState),ga=await gaContext.newPage();ga.on('pageerror',error=>errors.push(error.message));
+ await ready(ga,'comparte');await ga.locator('#public-works [data-work-delete]').first().waitFor();
+ const confirm=ga.locator('.work-delete-dialog');
+ await check('Every administrator can withdraw a project; cancellation changes nothing',async()=>{
+  assert.equal(await ga.locator('#public-works [data-work-delete]').count(),5);
+  assert.equal(await ga.evaluate(()=>window.BalconApp.service.isChef),false);
+  await ga.locator('#public-works [data-work-delete="10000000-0000-4000-8000-000000000001"]').click();await confirm.waitFor();
+  await confirm.locator('[data-cancel]').click();assert.equal(galleryState.publications||0,0);assert.equal(galleryState.deleteCalls||0,0);
+  assert.equal(await ga.locator('.lab-work-card').count(),5);
+ });
+ await check('Withdrawal persists for visitors and preserves unrelated unpublished edits',async()=>{
+  const publishedTitle=galleryState.document.restaurantName;
+  await ga.evaluate(async()=>{const doc=structuredClone(window.BalconApp.site);doc.restaurantName='Cambio pendiente sin publicar';await window.BZEditor.context().admin.applyDocument(doc);});
+  await ga.locator('#public-works [data-work-delete="10000000-0000-4000-8000-000000000001"]').click();await confirm.locator('[data-confirm]').click();
+  await ga.waitForFunction(()=>document.querySelector('#toast').textContent.includes('eliminado de la galería'));
+  assert.equal(galleryState.publications,1);assert.equal(galleryState.document.restaurantName,publishedTitle);
+  assert.equal(await ga.evaluate(()=>window.BalconApp.site.restaurantName),'Cambio pendiente sin publicar');
+  assert.equal(await ga.evaluate(()=>window.BZEditor.context().admin.dirty),true);
+  assert.equal(await ga.locator('[data-work-id="10000000-0000-4000-8000-000000000001"]').count(),0);
+  await gp.reload({waitUntil:'networkidle'});assert.equal(await gp.locator('.lab-work-card').count(),4);
+  assert.ok(galleryState.document.workPage.removedWorkIds.includes('10000000-0000-4000-8000-000000000001'));
+ });
+ await check('Removing a demonstration stays removed after reloading and leaves the other examples',async()=>{
+  await ga.locator('#public-works [data-work-delete="demo-pan-crujiente"]').click();await confirm.locator('[data-confirm]').click();
+  await ga.waitForFunction(()=>!document.querySelector('[data-work-id="demo-pan-crujiente"]'));
+  await gp.reload({waitUntil:'networkidle'});assert.equal(await gp.locator('.work-demo').count(),3);
+  await ga.reload({waitUntil:'networkidle'});assert.equal(await ga.locator('.work-demo').count(),3);
+ });
+ await check('A failed moderation publication keeps the card and reports failure',async()=>{
+  galleryState.failPublish=true;
+  await ga.locator('#public-works [data-work-delete="demo-tallos-brocoli"]').click();await confirm.locator('[data-confirm]').click();
+  await ga.waitForFunction(()=>document.querySelector('#toast').textContent.includes('servidor rechazó'));
+  assert.equal(await ga.locator('[data-work-id="demo-tallos-brocoli"]').count(),1);assert.equal(galleryState.publications,2);
+  galleryState.failPublish=false;
+ });
+ await check('Database deletion is used when installed and permission errors never pretend success',async()=>{
+  const record={...galleryState.works[0],id:'10000000-0000-4000-8000-000000000002',title:'Segundo trabajo'};galleryState.works.push(record);galleryState.permanentDelete=true;
+  await ga.reload({waitUntil:'networkidle'});await ga.locator('#public-works [data-work-delete="'+record.id+'"]').waitFor();
+  galleryState.forbidDelete=true;await ga.locator('#public-works [data-work-delete="'+record.id+'"]').click();await confirm.locator('[data-confirm]').click();
+  await ga.waitForFunction(()=>document.querySelector('#toast').textContent.includes('permisos'));
+  assert.equal(await ga.locator('[data-work-id="'+record.id+'"]').count(),1);assert.equal(galleryState.publications,2);
+  galleryState.forbidDelete=false;await ga.locator('#public-works [data-work-delete="'+record.id+'"]').click();await confirm.locator('[data-confirm]').click();
+  await ga.waitForFunction(()=>document.querySelector('#toast').textContent==='Propuesta eliminada.');
+  assert.equal(galleryState.works.some(work=>work.id===record.id),false);assert.equal(galleryState.publications,2);
+ });
+ await check('Gallery outage preserves identified demonstrations and reports the loading failure',async()=>{
+  galleryState.failGallery=true;await gp.reload({waitUntil:'networkidle'});
+  await gp.locator('#public-works>.notice').waitFor();assert.equal(await gp.locator('.work-demo').count(),3);
+  assert.match(await gp.locator('#public-works>.notice').innerText(),/No pudimos cargar/);galleryState.failGallery=false;
+ });
+ await galleryVisitor.close();await gaContext.close();
  await check('No uncaught browser errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify({passed:results.length,checks:results,service:'local mock; no production writes'},null,2));
  console.log(`Completed ${results.length} checks. Screenshots: ${artifacts}`);

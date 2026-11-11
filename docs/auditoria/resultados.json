@@ -1,5 +1,5 @@
 {
-  "passed": 37,
+  "passed": 40,
   "checks": [
     "Public routes at desktop, tablet, and phone widths",
     "Sister companies template has no controls strip and keeps keyboard navigation",
@@ -37,6 +37,9 @@
     "A failed moderation publication keeps the card and reports failure",
     "Database deletion is used when installed and permission errors never pretend success",
     "Gallery outage preserves identified demonstrations and reports the loading failure",
+    "Registration requests confirmation and accepts a confirmation link without granting admin access",
+    "User and administrator login keep their roles after reload and logout clears the session",
+    "Recovery keeps the app URL, validates matching passwords and explains expired links",
     "No uncaught browser errors"
   ],
   "service": "local mock; no production writes"

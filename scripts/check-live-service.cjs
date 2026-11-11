@@ -8,6 +8,7 @@ async function request(label,url,options={}) {
  for(let attempt=0;attempt<3;attempt++)try {
   const response=await fetch(url,{...options,signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw new Error(label+': HTTP '+response.status);
+  if(options.headers?.Origin)assert.ok(['*',options.headers.Origin].includes(response.headers.get('access-control-allow-origin')),label+': el navegador no tiene acceso CORS');
   const value=options.jsonResponse?await response.json():await response.text();
   report.checks.push({name:label,status:response.status});return value;
  }catch(error){last=error;}

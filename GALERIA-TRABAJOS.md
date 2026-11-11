@@ -31,4 +31,4 @@ Si falta únicamente esa función (`PGRST202`), la aplicación utiliza la retira
 
 ## Validación
 
-`tests/browser-audit.cjs` ejecuta 37 comprobaciones con el HTML real, Chromium y servicios simulados. Incluye lectura de los cuatro ejemplos, filtros, móvil, texto de participantes escapado, administrador sin rol de chef, cancelación, persistencia para visitantes, conservación de borradores, fallos de publicación, borrado cuando existe el RPC y rechazo de permisos. No escribe propuestas ni elimina registros en producción.
+`tests/browser-audit.cjs` ejecuta 40 comprobaciones con el HTML real, Chromium y servicios simulados. Incluye lectura e imágenes de los cuatro ejemplos, filtros, móvil, texto de participantes escapado, administrador sin rol de chef, cancelación, persistencia para visitantes, conservación de borradores, fallos de publicación, borrado cuando existe el RPC, rechazo de permisos y flujos de cuentas. No escribe propuestas ni elimina registros en producción.

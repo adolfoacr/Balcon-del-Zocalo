@@ -3,8 +3,16 @@
   "sourceURL": "https://www.culinariamexicana.com.mx/",
   "sourceName": "Culinaria Mexicana",
   "feedURL": "https://www.culinariamexicana.com.mx/feed/",
-  "updatedAt": "2026-11-11T02:08:48.470137Z",
+  "updatedAt": "2026-11-13T06:39:30.746087Z",
   "items": [
+    {
+      "id": "external-b227018d111b1ab3",
+      "title": "Cena Negra XV en Hotel Matilda, cinco tiempos para el Día de Muertos",
+      "url": "https://www.culinariamexicana.com.mx/cena-negra-xv-en-hotel-matilda-cinco-tiempos-para-el-dia-de-muertos/",
+      "excerpt": "En San Miguel de Allende, el chef Rodrigo Rivera-Río sirvió un menú que pasó de la carne seca al mole La entrada Cena Negra XV en Hotel Matilda, cinco tiempos para el Día de Muertos se publicó primero en Culinaria Mexicana .",
+      "image": "https://www.culinariamexicana.com.mx/wp-content/uploads/2026/11/cena-negra-xv-en-hotel-matilda-4.jpg",
+      "publishedAt": "2026-11-13T03:00:22Z"
+    },
     {
       "id": "external-22b5b89cfbbfa8c2",
       "title": "México se lleva el oro en el Campeonato Mundial de Restaurantes en Rusia",
@@ -60,14 +68,6 @@
       "excerpt": "Cuando se trata de alimentar a una familia, una de las principales preocupaciones de madres y padres es que sus La entrada Cinco consejos para incorporar pescado a la alimentación familiar se publicó primero en Culinaria Mexicana .",
       "image": "https://www.culinariamexicana.com.mx/wp-content/uploads/2026/07/Huachinango-a-la-Veracruzana-2000x1028.jpg",
       "publishedAt": "2026-07-20T22:13:57Z"
-    },
-    {
-      "id": "external-166101398c6b0aba",
-      "title": "Le Bistro Palacio presenta su Festival de la Cocina Francesa con el chef Alexis Preschez",
-      "url": "https://www.culinariamexicana.com.mx/le-bistro-palacio-alexis-preschez/",
-      "excerpt": "Llega a Le Bistro Palacio el Festival de la Cocina Francesa. Una experiencia culinaria que celebra una de las tradiciones La entrada Le Bistro Palacio presenta su Festival de la Cocina Francesa con el chef Alexis Preschez se publicó primero en Culinaria…",
-      "image": "https://www.culinariamexicana.com.mx/wp-content/uploads/2026/07/Alexis-Preschez-1.jpeg",
-      "publishedAt": "2026-07-17T19:36:44Z"
     }
   ]
 }
